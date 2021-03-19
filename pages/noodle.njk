@@ -1,0 +1,29 @@
+---
+title: rgrannell.xyz
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "noodle.html"
+images:
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156503/rgrannell.xyz/P1099802_bpwwdj.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156495/rgrannell.xyz/PXL_20210209_135144565_pmx4hq.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156496/rgrannell.xyz/PXL_20210122_105729791_syddbx.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156518/rgrannell.xyz/P1088316_wba7wd.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156497/rgrannell.xyz/PXL_20210107_122943170_c6jo8a.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156498/rgrannell.xyz/PXL_20210107_103624485_ey55uh.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156499/rgrannell.xyz/PXL_20201129_154328056_exported_19311_1606931260291_zy1kip.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156506/rgrannell.xyz/P1099881_jpnwcs.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156507/rgrannell.xyz/PXL_20201012_213006175_exported_47606_1602581749678_2_2_jmgl3x.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616156533/rgrannell.xyz/IMG_20200620_174213_efjwlt.jpg
+---
+
+# Noodle
+
+My pet leopard gecko, born ~March 2020. She spends her days:
+
+- [splooting](https://www.reddit.com/r/leopardgeckos/comments/clycs1/anyone_elses_gecko_sploot/)
+- staring menacingly
+- being confused by her reflection
+
+{% for image in images %}
+<img width="500" src="{{image}}"/>
+{% endfor %}

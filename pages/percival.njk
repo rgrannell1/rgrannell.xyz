@@ -1,0 +1,23 @@
+---
+title: rgrannell.xyz
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "percival.html"
+images:
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167157/rgrannell.xyz/P1055411_ljjvyu.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167159/rgrannell.xyz/P1055802_1_tznc6b.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167159/rgrannell.xyz/P1055211_re5kdm.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167162/rgrannell.xyz/P1055440_rq36qi.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167161/rgrannell.xyz/P1055403_glbogb.jpg
+- https://res.cloudinary.com/rgcastle/image/upload/v1616167166/rgrannell.xyz/P1055442_xqqsft.jpg
+---
+
+# Percival
+
+My parents live in a rural area in the Irish midlands, so they have a lot of interesting animals that visit their garden. One more recent visitor is a pheasant we've dubbed Percival that's managed to evade local hunters for over a year.
+
+Unfortunately we don't see the hen pheasant anymore...
+
+{% for image in images %}
+<img width="500" src="{{image}}"/>
+{% endfor %}
