@@ -12,6 +12,6 @@ let options = {
 let markdownLib = markdownIt(options).use(markdownItKatex)
 
 module.exports = function(eleventyConfig) {
-  eleventyConfig.addPlugin(pluginRss)
+//  eleventyConfig.addPlugin(pluginRss)
   eleventyConfig.setLibrary("md", markdownLib)
 }

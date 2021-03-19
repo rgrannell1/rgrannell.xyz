@@ -6,13 +6,37 @@
     <title>{{ title }}</title>
     <link rel="stylesheet" href="https://unpkg.com/marx-css/css/marx.min.css">
     <style>
+      nav ul {
+        list-style-type: none;
+        margin: 1px;
+        padding: 1px;
+        overflow: hidden;
+      }
+
+      nav {
+        margin-bottom: 3em;
+        font-size: 1.5em;
+        background-image: linear-gradient(15deg, #007bff 0%, #80d0c7 100%);
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 2px 4px 0px;
+      }
+
+      nav li {
+          float: left;
+      }
+
+      nav li a {
+        display: block;
+        color: white;
+        text-align: left;
+        padding: 4px 15px;
+        text-decoration: none;
+      }
 
     </style>
   </head>
   <nav>
     <ul>
-      <li><a href="http://rgrannell.xyz/">< Home</a></li>
-      <li><a>feed</a></li>
+      <li><a href="http://rgrannell.xyz/">home</a></li>
     </ul>
   </nav>
   <body>
