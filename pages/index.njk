@@ -9,7 +9,15 @@ permalink: "index.html"
 
 Hi, I'm [Róisín](https://www.nameshouts.com/names/all-languages/pronounce-roisin). Professionally I'm a site-reliability engineer (full developer + full operations) for a distressingly large site, in my free time I write a lot of code, enjoy nature photography, and do several things less productive but equally valuable.
 
+As for calls-to-action, consider supporting an effective charity (I like [EA Fund](https://app.effectivealtruism.org/funds)) and holding political positions fairer under a [veil of ignorance](https://en.wikipedia.org/wiki/Original_position).
+
 ## — Posts —
+
+<ul>
+{%- for post in collections.posts -%}
+  <li><a href="{{ post.data.permalink }}">{{ post.data.title }}</a></li>
+{%- endfor -%}
+</ul>
 
 ## — Misc —
 

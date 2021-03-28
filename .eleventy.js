@@ -1,4 +1,5 @@
 
+const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight")
 const pluginRss = require("@11ty/eleventy-plugin-rss")
 
 let markdownIt = require("markdown-it")
@@ -12,6 +13,9 @@ let options = {
 let markdownLib = markdownIt(options).use(markdownItKatex)
 
 module.exports = function(eleventyConfig) {
-//  eleventyConfig.addPlugin(pluginRss)
+  eleventyConfig.addLiquidFilter("dateToRfc3339", pluginRss.dateRfc3339)
+  eleventyConfig.addPlugin(pluginRss)
+  eleventyConfig.addPlugin(syntaxHighlight)
+
   eleventyConfig.setLibrary("md", markdownLib)
 }
