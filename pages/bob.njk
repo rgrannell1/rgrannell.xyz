@@ -1,0 +1,23 @@
+---
+title: rgrannell.xyz
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "bob.html"
+images:
+  - https://res.cloudinary.com/rgcastle/image/upload/v1618481455/rgrannell.xyz/P1066223_braomu.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1618482050/rgrannell.xyz/P1088179_oitqcy.jpg
+videos:
+  - https://res.cloudinary.com/rgcastle/video/upload/v1618482084/rgrannell.xyz/P1099626_hp2jsl.mp4
+---
+
+# Bob
+
+Bob is a grey heron that hunts in the stream by my apartment. I normally notice if he's around as he [screeches](https://www.youtube.com/watch?v=0UcJJA4s4XE) as he flies by my window (it took me a while to figure out what the noise was).
+
+{% for image in images %}
+<img width="500" src="{{image}}"/>
+{% endfor %}
+
+{% for video in videos %}
+<video src="{{video}}" width="500" controls/>
+{% endfor %}
