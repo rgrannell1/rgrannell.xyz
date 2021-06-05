@@ -18,7 +18,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPlugin(syntaxHighlight)
   eleventyConfig.addPassthroughCopy("css")
   eleventyConfig.addPassthroughCopy("manifest.webmanifest")
-  eleventyConfig.addPassthroughCopy("js")
+  eleventyConfig.addPassthroughCopy("sw.js")
   eleventyConfig.addPassthroughCopy("images")
 
   eleventyConfig.setLibrary("md", markdownLib)
