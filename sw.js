@@ -1,6 +1,9 @@
 
 const resources = [
-  '/index.html'
+  '/index.html',
+  '/css/marx.min.css',
+  '/prism-okaidia.min.css',
+  '/style.css'
 ]
 
 self.addEventListener('install', function (event) {
