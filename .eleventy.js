@@ -16,6 +16,7 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addLiquidFilter("dateToRfc3339", pluginRss.dateRfc3339)
   eleventyConfig.addPlugin(pluginRss)
   eleventyConfig.addPlugin(syntaxHighlight)
+  eleventyConfig.addPassthroughCopy("css")
 
   eleventyConfig.setLibrary("md", markdownLib)
 }
