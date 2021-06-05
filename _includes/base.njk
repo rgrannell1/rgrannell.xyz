@@ -5,48 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="Description" content="My personal website, containing anything I want to post online">
 
+    <link rel="manifest" href="/manifest/manifest.webmanifest">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#007bff">
 
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/css/marx.min.css">
-    <style>
-      nav ul {
-        list-style-type: none;
-        margin: 1px;
-        padding: 1px;
-        overflow: hidden;
-      }
-
-      a {
-        color: #0056b2;
-      }
-
-      nav {
-        margin-bottom: 3em;
-        font-size: 1.5em;
-        background-image: linear-gradient(15deg, #007bff 0%, #80d0c7 100%);
-        box-shadow: rgba(0, 0, 0, 0.35) 0px 2px 3px 0px;
-      }
-
-      nav li {
-        float: left;
-      }
-
-      nav li a {
-        display: block;
-        color: white;
-        text-align: left;
-        padding: 4px 15px;
-        text-decoration: none;
-      }
-
-      .header-tick {
-        color: lightgrey;
-      }
-
-      nav ul {
-        margin: 0px;
-      }
-    </style>
+    <link rel="stylesheet" href="/css/style.css">
   </head>
   <nav>
     <ul>
@@ -63,3 +28,11 @@
   </footer>
 </html>
 <link rel="stylesheet" href="/css/prism-okaidia.min.css">
+<script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/js/sw.js')
+    console.error('loaded /js/sw.js)
+  } else {
+    console.error('failed to load /js/sw.js)
+  }
+</script>
