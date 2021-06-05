@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="Description" content="My personal website, containing anything I want to post online">
 
-    <link rel="manifest" href="/manifest/manifest.webmanifest">
+    <link rel="manifest" href="/manifest.webmanifest">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#007bff">
 
@@ -31,7 +31,7 @@
 <script>
   if('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/js/sw.js')
-    console.error('loaded /js/sw.js')
+    console.log('loaded /js/sw.js')
   } else {
     console.error('failed to load /js/sw.js')
   }
