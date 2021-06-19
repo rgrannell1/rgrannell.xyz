@@ -1,0 +1,23 @@
+---
+title: rgrannell.xyz
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "/avoca.html"
+images:
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104677/rgrannell.xyz/Avoca/P1066650_xwp2lu.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104672/rgrannell.xyz/Avoca/P1066624_vecukx.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104671/rgrannell.xyz/Avoca/P1066657_nzwsrq.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104553/rgrannell.xyz/Avoca/P1111448_e569tr.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104568/rgrannell.xyz/Avoca/P1111601_zwfg9z.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104559/rgrannell.xyz/Avoca/P1111500_e4xjaw.jpg
+  - https://res.cloudinary.com/rgcastle/image/upload/v1624104561/rgrannell.xyz/Avoca/P1111640_lwxk5a.jpg
+---
+
+# Avoca, Co. Wicklow
+
+Avoca is a picturesque town in Co. Wicklow, which has been the centre of the [red kite](https://en.wikipedia.org/wiki/Red_kite) reintroduction in
+Ireland. They were previously extinct here, but the reintroduction has been successful and the bird's range is expanding throughout the country.
+
+{% for image in images %}
+<img width="500" src="{{image}}"/>
+{% endfor %}
