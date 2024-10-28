@@ -1,0 +1,92 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/composable-text-editing.html"
+title: Composable Text Editing
+subheading: Using optics to edit text
+---
+
+# Composable Text-Editing
+
+I write a lot of notes. In some respects, this is good; anything useful I've read is probably recorded somewhere. The downside is the notes become increasingly disordered over time; organisation schemes shift, tags are renamed, and updating hundreds / thousands of documents by hand is a complete waste of time.
+
+Text documents have a structure, in the same way a JSON document might. To update JSON, we simply address something directly or use marginally more complex selects (e.g `paragraph[0].quotes.map(quote => quote.title)`) and modify it directly or via a function. Text is less accessible; it's hard to first split each paragraph, then the quotes, then update and re-assemble everything without a lot of boilerplate code. So this approach is rarely taken, and we prefer to modify "machine-readable" documents for simplicity's sake.
+
+Functional programmers have created a zoo of optics — loosely speaking data-structures selectors / modifiers data-structures that compose — to handle complex object modifications. These include:
+
+- Lenses: extract a subpart, or set it if present (e.g the most significant digit in a number)
+- Prisms: extract or set a subpart if it's present (e.g the first position in a list)
+- Traversals: enumerate or map-modify each subpart in some collection of subparts
+
+these optics abstract the idea of selecting / modifying inner parts in nested records. Similar structures can be used to make text more programmatically-legible and modifiable than with typical `String` / `RegExp` level methods.
+
+Take for example the problem of modifying the first word of markdown heading to use a capitalised first letter. Conventionally the steps might be to:
+
+- split the document into lines
+- map across each line
+- check for a heading start
+- match the text after the heading using a regular expression
+- extract the word and the heading-depth
+- uppercase the word, and re-assemble the heading
+- re-assemble the document lines
+
+```ts
+function uppercaseWords(markdown: string): string {
+  const lines = markdown.split("\n");
+  const convertedLines = lines.map((line) => {
+    if (line.startsWith("#")) {
+      const heading = line.match(/^(#+)\s(.+)/);
+      if (heading && heading[2]) {
+        const headingLevel = heading[1].length;
+        const headingText = heading[2];
+        const convertedHeadingText = headingText.replace(
+          /^[a-z]/,
+          (match) => match.toUpperCase()
+        );
+        const convertedHeading = "#".repeat(headingLevel) + " " + convertedHeadingText;
+        return convertedHeading;
+      }
+    }
+    return line;
+  });
+
+  return convertedLines.join("\n");
+}
+```
+
+This is nasty, single-purpose code. We can do better if we frugally apply optics to the problem.
+
+## SubEdit
+
+SubEdit defines a prism constructor `MaybeMatch`, and a traversal constructor `EachMatch`. To me, documentation of optics normally devolves into word-salad, so I'll show how they work by example.
+
+We'll first define a traversal that matches all lines starting with `#` followed by text. Then we'll define two prisms; one that matches text not starting with a `#` or whitespace, and another prism that simply matches the first character.
+
+```ts
+const markdownHeadings = SubEdit.EachMatch(/^#{1,6} *.*$/mdg);
+const headingText = SubEdit.MaybeMatch(/[^ #].*$/);
+const firstCharacter = SubEdit.MaybeMatch(/./);
+```
+
+We now have optics that can select headings / first-characters, but we have not chained them together. This can be done using `composePrism`. We have a new traversal that can view or _target for modification_ the first character of every markdown heading in a document.
+
+```ts
+const firstHeaderCharacter = markdownHeadings
+  .composePrism(headingText)
+  .composePrism(firstCharacter);
+```
+
+Updating the document is now just a matter of calling `.modify` with `toUpperCase` over this optic. The method `.modify` behave a lot like a selective map function; it modifies each part of the text "in focus" according to the traversal. We now have an updated document, and acquired optics that can reusable in any other modifications we write.
+
+```ts
+const updatedDocument = firstHeaderCharacter
+  .modify(text => text.toUpperCase(), document)
+```
+
+Using optics to update text is a lot simpler than the earlier conventional implementation I showed! We've also explored essentially all of SubEdit's API; I haven't found a need for any constructors beyond `EachMatch` and `MaybeMatch`.
+
+## Takeaway Points
+
+- Programmatic text-editing is a tractable problem if you use optics
+- Don't hand-refactor large collections of notes, it's dull work

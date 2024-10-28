@@ -1,0 +1,70 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/address-parsing-using-typescript-and-neo4j.html"
+title: Address Parsing Using TypeScript & Neo4j
+subheading: I wrote a lot of code when searching for a flat, in retrospect...
+---
+
+# Address Parsing Using TypeScript & Neo4j
+
+I'm trying to find a house in the incredibly hostile Dublin housing market by gathering data to spot the diamond in the rough of all available property-deals, ideally in a way few others spot. Basically I'm testing [asymmetric information](https://www.investopedia.com/terms/a/asymmetricinformation.asp) as a buyer in practice. I won't cover my project [Castle](https://github.com/rgrannell1/castle) in any great detail at the moment, but these is one aspect I'd like to talk about.
+
+Part of the project involves:
+
+- Pulling in all recent property-sales in Ireland
+- Grouping these properties into towns and estates without those towns
+- Comparing the price of properties currently on the market to the "expected" price determined by previous sales
+
+Unfortunately, address parsing is hard. I initially fragmented addresses as a CSV and tried to work out house numbers, estates, counties, suburbs, and towns algorithmically but most addresses ended up mislabelled. Also the code was painful:
+
+{% highlight "typescript" %}
+  parse() {
+    const fragments = this.long.toLowerCase().split(',').map(str => str.trim())
+
+    const numberEstatePattern = /(?<houseNumber0>^[0-9]+[a-zA-Z]?)\s+(?<estate0>[^,]+)|^Apartment (?<houseNumber1>[0-9]+[aZAZ]?)/i
+    const matches = numberEstatePattern.exec(this.long)
+
+    const groups = matches?.groups
+
+    if (groups?.houseNumber0) {
+      const parsed = parseInt(groups?.houseNumber0)
+
+      if (!Number.isNaN(parsed)) {
+        this.houseNumber = parsed
+      }
+    } else if (groups?.houseNumber1) {
+      const parsed = parseInt(groups?.houseNumber1)
+
+      if (!Number.isNaN(parsed)) {
+        // -- much more nasty code.
+{% endhighlight %}
+
+I found [libpostal](https://github.com/openvenues/libpostal), an ML library trained against billions of addresses works a lot better. There are still defects; for example it's good at detecting towns but still has a habit of mislabelling estates and potentially missing the embedded townname in the estate
+
+<img src="https://res.cloudinary.com/rgcastle/image/upload/v1618215207/rgrannell.xyz/property-relation_bmnla9.png">
+
+I purchased a dataset including the name of all Irish settlements and their geospatial coordinates, so I'll be able to remedy this manually in future. Despite this problem the data is usuable, so I now have a map of prices by town and estate for all of Ireland! This is directly useful for estimating "true" property value by area, but I also plan to create a [Voronoi Diagram](https://en.wikipedia.org/wiki/Voronoi_diagram) of Ireland and hang an A1 print in the apartment it eventually helps me buy!
+
+Apart from parsing the addresses the componenets also need to be related together to be searchable. I previously used Sqlite as my data-store, but as the table-number climbed it got a bit cumbersome to analyse so I'm currently migrating to Neo4j. This helps as it treats relationships as first-class entities, so I can create a preliminary link of properties to estates/towns and then run transformations to improve graph connectness and remove invalid links and nodes.
+
+{% highlight "bash" %}
+match(p: Property) - [ref: IN] - (t: Town), (p: Property)-[: IN] - (e: Estate)
+  where not(e) - [:IN] - (t)
+merge(e) - [:IN] - (t)
+{% endhighlight %}
+
+Relationship rewrites like this are application-level in Sqlite, but relatively easy in Neo4j.
+
+The data passes basic checks like the average house-price in Ireland in 2020 being €313,000 (!), so I think it's ready to use. I'm excited to see what inferences I can draw from this data set!
+
+## Takeaway Points:
+
+- Use libpostal or a commercial service for address-parsing
+- Taxonomic maps are easy to construct and rewrite in Neo4j
+- Several extremely angry comments about Irish politics I left out
+
+## Addendum, October 2024
+
+It worked in the end; I found a relatively cheap flat using Castle that I otherwise would probably have missed.

@@ -1,0 +1,43 @@
+---
+tags: posts
+title: Choosing Photos
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "choosing-photos.html"
+subheading: Using Golang to filter out blurry photos
+---
+
+# Choosing Photos
+
+I like to take wildlife photographs. I find it meditative, and over many years I've photographed some interesting and uncommon animals. Some highlights so far include:
+
+- Seeing reintroduced Red Kites in Avoca, Co. Wicklow
+- Watching Red Deer fight in the annual rutt in Killarney, Co. Kerry
+- Briefly photographing a pine marten (a yellow-bibbed weasel) after a day waiting in a likely spot for it to appear
+
+For each of these trips I accumulated thousands of photographs, and had to spend a lot of time "deduplicating" and picking favourites. To keep things fun, I built a CLI called [Badger](https://github.com/rgrannell1/badger) to speed up this work.
+
+The algorithm is simple:
+- Cluster photographs taken about the same time into "shoots"
+- Label images with a blurriness estimate
+- Manually choose favourites in each cluster
+
+I detected image-blur using the variance of a [photo's laplacian](https://pyimagesearch.com/2015/09/07/blur-detection-with-opencv/). This value has no global meaning, but for two very similar images it reliably indicates which of two is blurrier.
+
+To group similar images together, I clustered them using their timestamps and [DBSCAN](https://en.wikipedia.org/wiki/DBSCAN). DBSCAN creates as many clusters as needed, and allow one-off photos to be added to a noise cluster.
+
+After grouping & labeling photos I manually pick favourites in each cluster, using the blur label to more quickly find "keepers".
+
+Badger has a few other features; it handles video (which I don't check for blurriness) and raw images associated with JPG files output by my camera.
+
+Does it work? Yes, with caveats. The library I use computes blur slowly (1 - 2s per image) and it still takes a little time to work through the remaining images manually. The clustering method is imperfect; in future I'll research a better method of clustering similar images. But, on the whole,
+I've sorted hundreds of thousands of images using this system and for most day-trips I have images sorted within thirty minutes.
+
+## Takeaway Points
+
+- Imperfect methods of detecting blur and grouping images still reduces manual work
+- Heuristics methods beat no methods
+
+## Addendum, October 2024
+
+Years later, I'm still using this project. It's sorted hundreds of photo albums for me and cuts my processing time down to roughly a quarter. It's due a rewrite (it's a little buggy) but the fundementals are good.

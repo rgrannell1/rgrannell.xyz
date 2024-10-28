@@ -1,0 +1,173 @@
+---
+tags: posts
+title: Replacing Google Photos
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "replacing-google-photos.html"
+subheading: Or, at least, the important parts
+---
+
+# Replacing Google Photos
+
+I used to share my photographs on Google Photos, but I've decided to move away from [essentially untrustworthy](https://pluralistic.net/tag/enshittification/) large tech companies. In Google's case, they deeply annoyed me with the [incredibly user-hostile change of stripping location-information from photos](https://issuetracker.google.com/issues/80379228), making it harder to move to a different service [1]. Then, [they announced they are deleting this data](https://www.malwarebytes.com/blog/news/2024/06/google-will-start-deleting-location-history) [2]. Hosting photographs isn't _that_ hard, so I removed most of the middle-men [3] and built my own website.
+
+My photos are now hosted at [https://photos.rgrannell.xyz](photos.rgrannell.xyz). There were two large projects involved
+in moving:
+
+- [mirror](https://github.com/rgrannell1/mirror), which manages photo metadata and uploads encoded photos to DigitalOcean Spaces
+- [photos.rgrannell.xyz](https://github.com/rgrannell1/photos.rgrannell.xyz), a Lit-based progressive-web app that displays the photos
+
+I'll discuss the technical details, then what I actually like about the website and how I plan to develop it.
+
+## Mirror
+
+The most difficult part of creating mirror was deciding how I would associate metadata with photos in a fairly simple way. I used a bodge; I used yaml files for each album named `tags.md`, which includes transclusions of the photos along with properties like tags. Markdown viewers will render images in the file, allowing me to quickly associate tags with images.
+
+For example:
+```yaml
+![PXL_20240317_134432737.jpg](PXL_20240317_134432737.jpg)':
+      user.xyz.rgrannell.photos.tags:
+      - Statue
+      - Published
+      - Bristol
+  user.xyz.rgrannell.photos.album_cover: PXL_20240317_133323050.jpg
+  user.xyz.rgrannell.photos.album_title: Bristol
+```
+
+these properties are mapped onto albums and images as [extended attributes](https://en.wikipedia.org/wiki/Extended_file_attributes), and synced to a local Sqlite database. To publish images, mirror finds entries tagged `Published` and upload thumbnails & full-size images to DigitalOcean Spaces. Metadata about what is currently published is written locally to `photos.rgrannell.xyz`
+
+## photos.rgrannell.xyz
+
+The site loads three JSON files describing my photo-albums:
+- albums.json
+- images.json
+- metadata.json
+
+### Performance
+
+Performance matters. I really dislike using slow-loading web-apps. To help with load-times, these files are cached globally (not using the service-worker) to prevent reloads when switching between pages. To speed up best-case load-times, some of these are loaded non-blockingly depending on which page is currently being viewed. The service-worker caches a few fairly static assets like libraries & thumbnails, to speed up loading after an initial visit to the page.
+
+Most of the page-size is from the photos themselves. Mirror encodes thumbnails as 400x400 webp images, which I thought were fairly compact until I inspected Google Photo's image-size. I tuned the encoding in [squoosh](https://squoosh.app/), and switching to lossy webp brought the average image-size down five-times to 20kb or so. I would like to adjust the image quality based on network quality, but `navigator.connection` is not widely supported and Jake Archibald's [lie-fi](https://www.youtube.com/watch?v=d5_6yHixpsQ&t=402s) is often standard when travelling.
+
+Annoyingly, webp does not support progressive loading (i.e blurry initial images loading to a sharp final image), unlike the much older jpeg format. So while webp will load faster, the page will be blank longer and the load times will thus be more apparent. As a workaround, I first load a ~500 byte 10x10 data-url of the thumbnail, and then replace it with the full-size image when it loads. This adds about 35kb before compression to the album page size, but it _feels_ faster to me. This is how it looks on an artifically slow connection:
+
+<video controls width="600">
+  <source src="/videos/mosaics.webm" type="video/webm">
+</video>
+
+The album page takes about 334kb over the wire to load the album-page, which is about [a sixth of the average website!](https://www.pingdom.com/blog/webpages-are-getting-larger-every-year-and-heres-why-it-matters/) I could make further savings, but I think [it's better to avoid complex builds for websites](https://jvns.ca/blog/2023/02/16/writing-javascript-without-a-build-system/) when possible.
+
+<details>
+  <summary>Implementation</summary>
+
+`LitElem` extends `LitElements`, but avoid setting a new shadow-root and adds a broadcast method for dispatching custom events.
+
+  ```js
+  export class PhotoAlbum extends LitElem {
+    static get properties() {
+      return {
+        title: { type: String },
+        url: { type: String },
+        thumbnailDataUrl: { type: String },
+        id: { type: String },
+        loading: { type: String },
+      };
+    }
+
+    hidePlaceholder(event) {
+      this.broadcast("photo-loaded", { url: this.url })();
+
+      const $placeholder = event.target.parentNode.querySelector(
+        ".thumbnail-placeholder",
+      );
+      $placeholder.style.zIndex = -1;
+    }
+
+    render() {
+      return html`
+      <div class="photo-album">
+        <img class="thumbnail-image thumbnail-placeholder" width="400" height="400" src="${this.thumbnailDataUrl}"/>
+        <img @load=${
+        this.hidePlaceholder.bind(this)
+      } style="z-index: -1" class="thumbnail-image" width="400" height="400" src="${this.url}" alt="${this.title} - Photo Album Thumbnail" loading="${this.loading}"
+        @click=${
+        this.broadcast("click-album", {
+          id: this.id,
+          title: this.title,
+        })
+      }>
+      </div>
+      `;
+    }
+  }
+  ```
+</details>
+
+### Styling
+
+Performance-tuning the website was fun, but I had a little less success making it responsibly resize on different devices. I use the usual tools of grids / flexboxes / media queries but the results are still a bit mis-sized on some devices. I'm not especially skilled at UI styling, so I'll be tweaking this for a long time.
+
+<video controls width="600">
+  <source src="/videos/screen-resize.webm" type="video/webm">
+</video>
+
+### Future Extensions
+
+The big benefit of writing the website myself was I can add the features I want over time. In the next few years, I'd like to add:
+
+- A privacy-preserving map of where photos were taken
+- Automatic tagging and annotation of photos using machine-learning (local if possible, though likely just Google Vision)
+- Search on par with what Google Photo's offers
+- [POSSE output](https://indieweb.org/POSSE) to [iNaturalist](https://en.wikipedia.org/wiki/INaturalist)
+- Puppeteer-based testing
+
+I'd also like to build a companion-site more like Instagram, where I can post personal photos & videos.
+
+
+## Takeaway Points
+
+- It's not hard to build your own photo-hosting
+- It's essential to make it performant
+- Webp is small but missing progressive loading, which makes loading feel slower than it really is
+
+---
+
+[1]
+
+This script will (slowly) scrape information directly from the site into a list that `copy(results)` can grab, and Google Takeout will return the rest of the information.
+
+<details>
+  <summary>Script</summary>
+
+```js
+var results = []
+
+function giveMeMyBloodyDataBack() {
+  const result = {
+    fpath: $('div[aria-label^="Filename"]')?.innerText,
+    location:  $('div[aria-label="Edit location"]')?.innerText,
+    mapHref: $('a[title="Show location of photo on Google Maps"]')?.href
+  };
+
+  results.push(result)
+
+  $('div[aria-label="View next photo"]').click()
+
+  setTimeout(() => {
+    giveMeMyBloodyDataBack()
+  }, 750)
+}
+
+giveMeMyBloodyDataBack()
+```
+
+</details>
+
+
+[2]
+
+It's good for privacy, but I personally really like this feature as it gives me a map of all the places I visited.
+
+[3]
+
+I still use netlify, deno deploy, and DigitalOcean for hosting. But I can move those if I need to!

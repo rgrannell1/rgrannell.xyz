@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "xyz.rgrannell.bookmark.edit.v1",
+  "description": "An event describing a set of relations associated with an object",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "bookmark_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "relations": {
+      "type": "object",
+      "patternProperties": {
+        ".+": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "bookmark_id",
+    "relations"
+  ]
+}

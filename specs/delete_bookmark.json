@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "xyz.rgrannell.bookmark.delete.v1",
+  "description": "An event deleting a bookmark",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "created_at"
+  ],
+  "additionalProperties": false
+}

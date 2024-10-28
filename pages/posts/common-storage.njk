@@ -1,0 +1,52 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/personal-data-storage.html"
+title: Personal Data Storage
+subheading: A reusable storage server
+---
+# Personal Data Storage
+
+For the past two years I've worked on moving my personal data away from companies like [Google](https://www.theverge.com/2023/8/7/23823878/google-privacy-tracking-incognito-mode-lawsuit-summary-judgment-denied), [Facebook](https://www.malwarebytes.com/blog/news/2024/03/facebook-spied-on-snapchat-users-to-get-analytics-about-the-competition), and [X — The Everything App — (formally known as Twitter)](https://www.theguardian.com/technology/2023/nov/16/elon-musk-antisemitic-tweet-adl). For a while, these companies offered more than they took, but especially since the tech-downturn they have ramped-up their anti-user business practices.
+
+My effort has been a limited success; I still lurk on Twitter and reluctantly use Gmail. I moved my photo-hosting with surprising ease to a [self-hosted website](https://photos.rgrannell.xyz/) which offers most of what I found valuable with Google Photos. One other project — Common-Storage —  has been especially valuable to me.
+
+## Common-Storage
+
+One problem with handing over personal data to a third-party is that they can do what they'd like with it for business reasons. This doesn't always (and increasing, often) align with what end-users would like their data to be used for. LLMs like OpenAI have vacuumed up large portions of the (copyright-protected) internet and repackaged it as [lorum-ipsumesque sewage-torrents](https://twitter.com/DeadTheory__/status/1776361023131292034), whether or not the original creators of the ingested books, art-work, recipes, and blog posts would have consented to this use.
+
+In a better world, I think many servers would act more like zero-knowledge relays of information from web-application clients to more durable-storage. Our phones have 128GB+ of fast storage and plenty of computing power, and advances in web-standards like [progressive web applications](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) and [WASM](https://webassembly.org/) have increased the capabilities of vendor-neutral web-applications[4]. I'd like to see us shift more "business-logic" to the client, and reduce the amount of processing done on servers run by companies decreasing operating in our best interests. [1]
+
+One place to start is building a relay of data from arbitrary storage-providers (S3, Google Cloud, etc.) to client-applications. Common-Storage stores a few things:
+- Users, and their assigned role that grants them permissions
+- Roles, and what topics and actions they grant access to
+- Topics, which are lists of content optionally constrained by a schema
+- Content, which are the append-only data a client chooses to store somewhere
+- Subscriptions, which allows one common-storage server to follow another server's topic for content
+
+To use a CS server:
+- [Read the documentation](https://github.com/rgrannell1/common-storage)
+- Use administrator credentials to configure suitable roles and users
+- Create topics for data like bookmarks
+- Publish data from your web-applications (or even `curl`) to the server to persist it remotely
+- Read data via CS using a paginated API or as a stream
+- Connect CS servers together using subscriptions, if you'd like a local copy of the data
+
+There are a few interesting details about the design:
+
+- **Simplicity**: I have tried to keep CS as simple as possible. It has a plain JSON+Basic Authentication API that's simple to call from any language or tool. The code-base is fairly minimal, there's no bloated build system, and I've tried to keep the project maintainable.
+- **Append-only content**: I think supporting deletion at the storage level is a net-negative for a personal data-server. Deletion can be modeled at the application-level[3], and data can never be irrecoverably lost
+- **Content-agnostic**: beyond an optional data-schema, nothing in CS is specific to the type of content stored. Anything can be stored; bookmarks, notes, photos, geolocation data, contact information. Data-modelling is left to the client applications
+- **Storage-agnostic**: CS is not strongly tied to any particular storage-provider. CS currently support Deno KV[2] as a storage-backend, but it has [a very small interface](https://github.com/rgrannell1/common-storage/blob/246142c733ab8d05314f343ab6753181ba9c4177/types/storage.ts#L326C1-L339C2) that defines what it requires to add support for alternate storage-providers.
+- **Role-Based Authentication**: It is nice to be able to store a todo-item from a work-laptop, but it is less desirable for all personal medical appointments to be readable from that same device. CS supports role-based-authentication to provide limited privileges to semi-trusted devices and automations.
+- **Federation**: CS servers are interoperable; one server can subscribe to another for content. One use of this is to have a local-server (with more privileged information like banking data) subscribe to a remote web-app-accessible CS server that relays much less sensitive-information.
+
+Common-Storage is inspired by [RSS/Atom](https://en.wikipedia.org/wiki/RSS), an excellent protocol which allows me to read interesting news from hundreds of websites daily without visiting each ad-bloated portals in turn. CS also aims to liberate data from being gatekept behind the applications that view it / add to it.
+
+---
+
+1. I have no great confidence peer-to-peer applications are suitable for this task, due to their additional complexity & the obstacles of NAT traversal that require [dedicated protocols](https://en.wikipedia.org/wiki/STUN) to attempt to circumvent
+2. Deno KV was chosed because it's an embedded-database backed by sqlite that's fairly easy to host on [Deno Deploy](https://deno.com/deploy)
+3. I personally use a set of `{add<content>, delete<content>, edit<content>}` events which my application processes to compute a current application-state.
+4. Note that [Apple is not especially keen on PWAs](https://techcrunch.com/2024/02/15/apple-confirms-its-breaking-iphone-web-apps-in-the-eu-on-purpose/)

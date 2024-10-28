@@ -1,0 +1,81 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/finding-bus-links-with-neo4j.html"
+title: Finding Bus-links with Neo4j
+subheading: Surprisingly effective
+---
+
+# Finding Bus-links with Neo4j
+
+As part of my housing-search project Castle I've needed to analyse the transport links across the city between work and each candidate property. This was pretty difficult when I was initially using SQlite, as finding links between stops and routes would require endless joins and isn't a natural fit for a relational DB. This prompted me to migrate the project to graph database that could traverse these links more naturally.
+
+First, I found a database containing information about all Irish bus-links operator's route, and the geolocation of each bus-stop.
+
+{% highlight "text" %}
+ID,ShapeId,Operator,StopSequence,RouteName,Direction,AtcoCode,PlateCode,ShortCommonName_en,ShortCommonName_ga,HasPole,HasShelter,CarouselType,FlagData,RouteData
+60373,1-700-y11-3.1.I,Aircoach,1,700,Inbound,8240000551,0,Dublin Airport T1,Aerfort BÁC C 1,No Pole,No Shelter,None,None,"700,702,703,704-x,705-x"
+32764,1-700-y11-3.1.I,Aircoach,2,700,Inbound,8240000550,0,Dublin Airport,Aerfort BÁC,Unknown,Unknown,Unknown,Unknown,"700,702,703,704-x,705-x,712-x"
+2322,1-700-y11-3.1.I,Aircoach,3,700,Inbound,8220DB000047,47,Drumcondra Rail Stn,Stáis Dhroim Conrach,Pole,No Shelter,"Oblong,TFI Short","Lolly Pop,Stretched","1,11,13,16,16c,16d,33,41,41b,41c,41d,44,700,740,740-a,904,910"
+1727,1-700-y11-3.1.I,Aircoach,4,700,Inbound,8220DB000272,272,O'Connell St Upper,Sd Uí Chonaill Uacht,Pole,No Shelter,Trueform,Trueform,"123,700,904"
+29206,1-700-y11-3.1.I,Aircoach,5,700,Inbound,8220DB000273,273,O'Connell Bridge,Dr Uí Chonaill,Pole,No Shelter,Oblong,"Lolly Pop,Stretched","4,7,700,7a"
+4986,1-700-y11-3.1.I,Aircoach,6,700,Inbound,8220DB004530,4530,Kildare Street,Sráid Chill Dara,Pole,No Shelter,Trueform,Trueform,"25,25a,25b,25d,700,910"
+...
+{% endhighlight %}
+
+I mapped this onto a few node and relationship types:
+
+- `BusStop`
+- `BusRoute`
+- `DRIVES_TO`
+- `STOPS_AT`
+- `NEAR`
+
+to connect the graph together. After injesting the data we get the following kind of network:
+
+{% image "images/bus_links.png", "a large graph diagram of interlinked bus stops, locations that are nearby. Colour coded, about 100 nodes." %}
+
+This network encodes which properties (or workplaces) are near bus-stops, which routes stop at those stops, and the paths those bus-routes follow. In principle it should be easy to use cypher to search across, but in practice this network is pretty branching and massive and it's easy to fall into performance pitfalls.
+
+After a few hours I found a query that found the fewest-stop bus-route from a property to work, if one exists.
+
+{% highlight "cypher" %}
+match (prop:Property)-[:NEAR]-(propStop:BusStop), (work:Workplace)-[:NEAR]-(workStop:BusStop)
+  where prop.id = $id
+  with *
+
+match (propRoute:BusRoute)-[:STOPS_AT]->(propStop), (workRoute:BusRoute)-[:STOPS_AT]->(workStop)
+  where propRoute.route = workRoute.route
+  with *
+
+match routePath = shortestpath((propRoute)-[*]-(workRoute))
+  where all(rel in relationships(routePath) where rel.route = propRoute.route AND type(rel) = 'DRIVES_TO')
+with *
+return routePath, propRoute.route as route, propStop, workStop, propRoute.operator as operator
+{% endhighlight %}
+
+How are the results? **REALLY GOOD**. Here are a few examples for random properties:
+
+> Get on 194-a (run by Ashbourne Connect) at St John's Wood Court and get off at Mount Street Bridge
+
+> Get on 155 (run by Dublin Bus) at Gulliver's Retail Pk and get off at St Johns Ambulance
+
+> Get on 155 (run by Dublin Bus) at Nursing Home and get off at Fitzwilliam Place
+
+> Get on 41x (run by Dublin Bus) at Laurelton and get off at Royal Hospital
+
+> Get on 18 (run by Go-Ahead) at Kylemore Avenue and get off at Northumberland Road
+
+Castle is really good at finding routes across the city, even for properties I wouldn't expect to have a convenient bus-link. In many cases it finds more convenient transit-links than Google transit, with a few caveats.
+
+- At the moment, Castle doesn't have any access to route-time information. This isn't an issue for the larger bus-companies that run often, but smaller operators likely only commute a few times per day.
+- Castle ignores complex connections to work such as getting on a bus, walking two kilometers, and getting on a Luas. This can be found easily, but in practice most of these routes will be too inconvenient to bother using.
+
+55% of percent of all properties I'm analysing has a single-bus link to work, with many of the disconnect properties very far out in the countryside.
+
+## Takeaway Points:
+
+- Sqlite isn't good at finding paths across graphs
+- Neo4j is, with caveats around performance
+- It's possible to create genuinely useful transit-maps with a few hours of coding and access to open-data

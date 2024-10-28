@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "xyz.rgrannell.geolocation.add.v1",
+  "description": "An event creating a geolocation record",
+  "type": "object",
+  "properties": {
+    "device_id": {
+      "type": "string"
+    },
+    "accuracy": {
+      "type": "number"
+    },
+    "altitude": {
+      "type": "number"
+    },
+    "altitude_accuracy": {
+      "type": "number"
+    },
+    "heading": {
+      "type": "number"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "speed": {
+      "type": "number"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "device_id",
+    "latitude",
+    "longitude",
+    "created_at"
+  ],
+  "additionalProperties": false
+}

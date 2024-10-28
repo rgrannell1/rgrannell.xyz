@@ -1,0 +1,23 @@
+---
+title: rgrannell.xyz
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts.html"
+---
+
+# Posts
+
+I don't post often, but it'll normally be related to programming or mathematics.
+
+<section>
+
+<ul>
+{%- for post in collections.posts -%}
+  <li><div>
+    <a href="{{ post.data.permalink }}">{{ post.data.title }}</a>
+    <p>{{ post.data.subheading }}</p>
+  </div></li>
+{%- endfor -%}
+</ul>
+
+</section>

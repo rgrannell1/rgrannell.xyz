@@ -1,0 +1,80 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/testing-in-typescript.html"
+title: Testing in TypeScript
+subheading: Hypothesis-based fuzz-testing
+---
+
+# Testing In TypeScript
+
+Testing in TypeScript is painful, because "settings that let my code run" and "settings that let my tests run" are a painfully disjoint pair.
+
+For example; I'm writing tests for my housing-search project "Castle". Castle uses `"type": "module"` to support ESM import statements and vanilla TSConfig otherwise. This was _almost_ ok for `node-tap`, but the test-coverage wouldn't work. I switched to `jest`, rewrote my tests, added babel configuration to transpile my TypeScript, and things _almost_ ran, apart from Jest not correctly handling imports. Fine.
+
+I switched to a manually executed `test.js`* file that would load in each subtest and execute it. This is guaranteed to run the same way my normal application code does. But adding coverage with `nyc` was not guaranteed to work, as `nyc` didn't like the import format either. Finally, I found that [`c8`](https://www.npmjs.com/package/c8) (a prototype when I last read about it) correctly hooked into V8 and extracted coverage data. In total, this took about 4 hours to set up.
+
+Something positive did come out of this frustrating build-tool fiddling. Because I was directly running my own tests I built a no-binary test-framework that uses property-based testing rather than cumbersome individual case-tests. It's still work-in-progress, but [`atypical`]((https://github.com/rgrannell1/atypical)):
+
+- receives millions of test-cases from a generator function
+- validates that boolean hypotheses (e.g the output is always length 64) hold over each case.
+- divides a time budget between each hypothesis rather than requiring a fixed number of cases to test
+
+The hard part of property-based testing is normally test-case generation, but thankfully I wrote a library called [revexp](https://github.com/rgrannell1/revexp) a while back that helps with this! Revexp generates strings from patterns (think reverse regular-expressions), which I used to generate any cases I needed.
+
+In this example I check that over all short arrays of unicode strings a computed hash-value is equal to itself (i.e the function is deterministic). It also implicity checks that no case causes an exception!
+
+{% highlight "js" %}
+hashHypothesis
+  .cases(function* () {
+    const str = parts.repeat(parts.any, { from: 0, to: 30 })
+
+    while (true) {
+      const out = []
+
+      for (let ith = 0; ith < 10; ++ith) {
+        out.push(str())
+      }
+
+      yield [out]
+    }
+  })
+  .always((str: string[]) => {
+    return utils.getHash(str) === utils.getHash(str)
+  })
+{% endhighlight %}
+
+
+{% highlight "bash" %}
+> tsc && c8 node dist/test/index.js
+
+- hypothesis "email properties hold" HELD for 2,871,488 test-cases
+- hypothesis "hash properties hold" HELD for 3,734,514 test-cases
+- hypothesis "minStandardFare properties hold" HELD for 3,734,516 test-cases
+theory "all expected properties held true" HELD
+
+--------------------|---------|----------|---------|---------|--------------------------------------
+File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+--------------------|---------|----------|---------|---------|--------------------------------------
+All files           |   69.42 |    53.85 |   26.09 |   69.42 |
+ config             |   96.15 |    33.33 |     100 |   96.15 |
+  default.ts        |   96.15 |    33.33 |     100 |   96.15 | 19-20
+ src/commons        |   64.76 |       50 |   27.27 |   64.76 |
+  constants.ts      |     100 |      100 |     100 |     100 |
+  logger.ts         |     100 |      100 |     100 |     100 |
+  travel.ts         |   83.33 |       25 |     100 |   83.33 | 24-25,31-32,34-37
+  utils.ts          |      45 |      100 |      20 |      45 | ...76-90,93-94,97-98,101-109,112-120
+ src/commons/api    |   56.52 |       50 |   11.11 |   56.52 |
+  logz.ts           |   56.52 |       50 |   11.11 |   56.52 | 35-41,51-57,60-67,70-77,80-87,90-91
+ src/commons/models |      75 |      100 |       0 |      75 |
+  statistics.ts     |      75 |      100 |       0 |      75 | 18-23
+ test               |     100 |      100 |     100 |     100 |
+  index.ts          |     100 |      100 |     100 |     100 |
+--------------------|---------|----------|---------|---------|--------------------------------------
+{% endhighlight %}
+
+### Lessons Learnt
+
+- `c8` will tolerate anything that typescript and node will
+- ESM just isn't well supported in Node.js or TypeScript yet due to tooling incompatabilities

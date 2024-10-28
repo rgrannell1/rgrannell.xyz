@@ -1,0 +1,67 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/prioritising-side-projects.html"
+title: Prioritising Side-Projects
+subheading: Carefully choosing distractions
+---
+
+# Prioritising Side-Projects
+
+Like most software-developers, I have an endless backlog of things to work on. This applies to my side-projects too; I jot all my ideas down in a <a href="https://en.wikipedia.org/wiki/Getting_Things_Done">GTD</a> Obsidian inbox, work on some of them, and leave most for years.
+
+The list is fifty ideas long now (after deleting a lot of crap ideas) and it's hard to seperate useful ideas from ones that are too niche or difficult.
+
+So, I tried assigning (1-10) weighted scores to each idea, and ordering by $\frac{good}{bad}$
+
+- difficulty: how difficult is the known work?
+- uncertainty: what is the likelyhood I'll run into unexpected or insurmountable problems?
+- learning: how much will I learn developing this idea?
+- impact: how useful will the finished project be?
+- time: how long will it take to create?
+
+I didn't expect this to work, but it sorted projects surprisingly well!
+
+| Project                                                                                       |   difficulty |   uncertainty |   learning |   impact |   time |    score |
+|-----------------------------------------------------------------------------------------------|------------- |-------------- |----------- |--------- |------- |--------- |
+| Distribution of blur in uploaded photos                                                       |            2 |             0 |          2 |        3 |      3 | 1.02857  |
+| Run a subprocess with .env file                                                               |            2 |             2 |          1 |        4 |      3 | 0.781818 |
+| Rsync logs down, pull into somthing searchable, grapahble, one process, no installs otherwise |            4 |             2 |          2 |        6 |      5 | 0.776471 |
+| Alarm label for todoist                                                                       |            5 |             2 |          2 |        6 |      4 | 0.733333 |
+| enable fn logs and traces, narrow down with grep. Userland strace                             |            6 |             5 |          6 |        8 |      6 | 0.7      |
+| Highly interactive debugging                                                                  |            7 |             7 |          5 |       10 |      8 | 0.638889 |
+| Metric connection tool for tie into clockwok                                                  |            5 |             3 |          3 |        6 |      6 | 0.627273 |
+| Lens based JQ                                                                                 |            8 |             8 |         10 |        9 |      7 | 0.615385 |
+| Generate high contrast versions of light colour schemes programatically                       |            6 |             5 |          6 |        6 |      5 | 0.577778 |
+| Use a shell-parser to parse through history and extract commands                              |            6 |             4 |          6 |        5 |      4 | 0.566667 |
+
+Score-based sorting hid most projects too difficult to be worth the effort, and bumped a lot of easy to moderately difficult projects with sufficient usefulness.
+
+## Takeaway Points:
+
+- Long idea-lists can be priority-sorted, without much effort.
+
+## Addendum, October 2024
+
+It's interesting for me to look back at this post after a few more years in the software development industry. I can't say this is a great selection of side-projects.
+
+- **Distribution of blur in uploaded photos**: a non-globally meaningful metric, with no actual use-case. Implemented for free as part of Mirror, but never used.
+- **Run a subprocess with .env file**: literally just `export $(cat .env |xargs) && <cmd>`, wrap this in a bash script if needed
+- **Rsync logs down...**: logs are in company-specific repositories and formats, with their own tools available (e.g Athena)
+- **Alarm label for todoist**: useful, which is why Todoist implemented it themselves.
+- **Userland strace**: I think this is language-specific, though a good idead
+- **Highly interactive debugging**: more details, please?
+- **Metric connection tool for tie into clockwok**: Clockwork is a rightfully dead "quantified self" project of mine, YAGNI
+- **Lens based JQ**: Reasonably good idea, if a technology looking for a problem
+- **Use a shell-parser to parse through history and extract commands**: Grep is normally enough, otherwise YAGNI
+
+So maybe two of these are useful (Lens JQ and userland strace), though tools already exist that are roughly sufficient.
+
+What I've learnt in the past few years is:
+
+- Check with customers (or myself, which is harder!) what is actually useful
+- User-experience is the primary thing that matters
+- Extend useful things
+- Worse is better; simple, imperfect tools can be built faster, trialed faster, and dropped or extended faster
+- Interesting technology or tidy architecture are not enough to justify building something

@@ -1,0 +1,39 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/fast-geospatial-clustering.html"
+title: Fast Geospatial Clustering
+subheading: To cluster Ireland's houses into housing-estates, towns, ...
+---
+
+# Fast Geospatial Clustering
+
+As part of my house-search project "Castle" I'm trying to determine regional price-statistics for properties on the "housing estate" or city-area level. I initially approached this by running DBSCAN — a density-based clustering technique that can handle noise points & variable cluster size  — against all previous sales on the Dublin parish level. This partitioning of about 10,000 sales into parish groups sped up the clustering process, however this partitioning is unrealistic as clusters of houses can cross-parish boundaries.
+
+Unfortunately DBSCAN (or at least that library) scales badly, so I simply couldn't get the algorithm to run for this many data-points. The bottleneck, apparently, is `regionQuery`, a substep that finds all points within a radius of a target point.
+
+I figured I could optimise this step easily by pre-partitioning points (historical sales) into buckets, and only computing distance-searches on points in only a few of these buckets rather than buckets clearly too "far away". This was conceptually easy, not in practice, but it does actually work.
+
+The algorithm I chose was:
+
+- take a search radius `r` and a list of geospatial  points
+- find the smallest [geohash](https://en.wikipedia.org/wiki/Geohash) precision `n` with minimum bounds wider than `r`
+- compute geohashes of size `n` for each point, and bucket each point by this geohash
+- when running `regionQuery`, only examine points in the geohash bucket the target point is in, and the geohash buckets neigbouring that bucket. This is a reduced search space that includes the entire radius around the target point.
+
+This was surprisingly fiddly and I'm still not confident it's implemented 100% correctly (some tests are failing) but it is currently at least approximately correct and very fast. This brought execution-times from non-terminating to five minutes (an intermediate implementation) to 100 milliseconds.
+
+What does this [yak-shaving](https://en.wiktionary.org/wiki/yak_shaving) effort achieve? I can now find housing-sale clusters across all of Ireland, letting me identitfy whether a house for sale is cheap or dear for that location. It will also allow me to cluster hundreds-of-thousands of shops across the country into "town centres", and find whether a house is central to a town.
+
+<img src="https://res.cloudinary.com/rgcastle/image/upload/v1620917747/rgrannell.xyz/clusters_bfj4oo.png">
+
+I alluded to some difficulties. Generating points within a radius of a geolocation is surprisingly difficult; I used a search algorithm to find them but it dug up a bug in the haversine library (or formula?) where two extremely distant points are measured as nearby, which took _ages_ to spot and mitigate. I prefer to use fuzz-testing as it's excellent at finding corner-cases you would never spot manually. This is a double-edged sword; sometimes it finds edge cases you really can't explain! At the moment there are anomolies in the test I haven't solved, but I believe `geo-dbscan` works well-enough for me to be useable at the moment.
+
+I think this technique is generalisable for non-geospatial data; spatial (in the broad-sense) partitioning can be used to narrow candidate points & speed up DBSCAN in general. I'm not planning to develop this further but I suspect a simple grid-based partitioning will work in many cases, with a quadtree (or n-dimensional equivalent) working in cases with very distant clusters.
+
+## Takeaway Points:
+
+- DBSCAN is _really_ bottlenecked by neighbour search
+- Fuzz-testing geospatial code is kind of hard
+- Spatial partitioning probably accelerates DBSCAN in general

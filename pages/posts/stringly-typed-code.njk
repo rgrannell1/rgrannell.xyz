@@ -1,0 +1,113 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/stringly-typed-code.html"
+title: Stringly-Typed Code
+subheading: ASTs are good, raw strings less so
+---
+
+# Stringly-Typed Code
+
+As part of my house-finding project Castle I wrote the following substantial cypher query to find the distance from a property to work by train.
+
+{% highlight "js" %}
+await this.db.run(`
+match (p:Property)-[:NEAR]-(d0:DartStop), (w:Workplace)-[:NEAR]-(d1:DartStop)
+  where p.id = $id
+with *
+match path=(d0)-[:TRAVELS_TO*]-(d1)
+with *
+
+with reduce(acc={ sum: 0, last: null }, node in nodes(path) | case
+  when acc.last is null
+    then {
+      sum: 0,
+      first: node
+      last: node
+    }
+  else
+    {
+      sum: acc.sum + distance(acc.last.location, node.location),
+      first: acc.first,
+      last: node
+    }
+  end
+) as acc, p, d0, d1, w
+
+return {
+  totalDistance: acc.sum + distance(p.location, d0.location) + distance(d1.location, w.location),
+  dartDistance: acc.sum,
+  lastName: acc.last.name,
+  firstName: acc.first.name,
+  walk: distance(p.location, d0.location) + distance(d1.location, w.location)
+} as result
+`, { id: property.id })
+{% endhighlight %}
+
+That's not exactly true; I added a comma after `first: node` to fix the syntax. Did you spot it? I don't like string-based query languages because they're hard to read (lack of highlighting), there's no compile-time syntax checks, and dynamic string0query construction often leads to SQL injection
+
+{% image "images/exploits_of_a_mom.png", "exploits of a mom xkcd. Jokes about a son with a name that would drop SQL tables in poorly sanitised databases" %}
+
+I think we can do better. First, come up with an machine-readable representation of the DSL.
+
+{% highlight "json" %}
+[
+  [
+    "match",
+    [
+      "pattern",
+      [
+        "cartesian",
+        [
+          "relation",
+          "NEAR",
+          ["node", "p", "Property"],
+          ["node", "d0", "DartStop"]
+        ],
+        [
+          "relation",
+          "NEAR",
+          ["node", "w", "Workplace"],
+          ["node", "d1", "DartStop"]
+        ]
+      ]
+    ]
+  ],
+  [
+    "where", ["eq", "p.id", "$id"]
+  ],
+  [
+    "with", "*"
+  ],
+  // - much more
+]
+
+{% endhighlight %}
+
+Second, write libraries that output this library
+
+{% highlight "js" %}
+db.match([
+  node('p:Property').rel('near').node('d0:DartStop'),
+  node('w:Workplace').rel('near'),node('d0:DartStop')
+])
+.where('p.id', 'eq', id)
+{% endhighlight %}
+
+And now use this library to build any future queries. Why take this approach?
+
+- Code is shorter and more idiomatic to the programming languages
+- Syntax-checking can be elevated to the type-level, ensuring the DSL is valid at compile time
+- Easier machine-generation and abstraction of DSQ queries
+
+In my opinion we should never have to write SQL, Cypher, or any other string-DSL alongside our normal programming language.
+
+This point can be generalised to arguing for [homoiconic](https://en.wikipedia.org/wiki/Homoiconicity#:~:text=A%20language%20is%20homoiconic%20if,by%20reading%20the%20program%20itself.) language representation like LISP so code is always (easily) machine-readable and writeable, but I won't go into that point here
+
+## Takeaway Points:
+
+- Stop putting big ugly strings in my programming-language
+- Any string DSL can be mapped onto JSON or a similar language
+- Any JSON DSL can be easily wrapped in a builder-library
+- Database access doesn't need to be quite so painful

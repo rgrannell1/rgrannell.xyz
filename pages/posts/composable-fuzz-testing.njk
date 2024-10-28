@@ -1,0 +1,164 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/composable-fuzz-testing.html"
+title: Composable Fuzz Testing
+subheading: A fuzz-testing combinator library
+---
+
+# Composable Fuzz Testing
+
+Years ago I wrote a string-generation library called [Revexp](https://github.com/rgrannell1/revexp). It took a JSON spec object and generated endless strings matching the described pattern. For example, this fragment generates decimal strings.
+
+```js
+export const number = {
+  every: [
+    {
+      digit: { zero: false }
+    },
+    {
+      repeat: {
+        value: { digit: {} },
+        from: 0,
+        to: constraints.MAX_WHOLE_PART_LENGTH
+      }
+    },
+    {
+      optional: {
+        every: [
+          '.',
+          {
+            repeat: {
+              value: { digit: {} },
+              from: 1,
+              to: constraints.MAX_DECIMAL_PART
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+it worked, but I didn't feel the library had a good enough approach to creating random values. Only strings were supported, so no objects or arrays could be generated and tested. Some functions returned thunks (zero-argument functions) and some returned strings, with no type-based design. And too often values would be "hard-coded", limiting output diversity.
+
+I found a better abstraction, which I have named fuzz combinators
+
+## Fuzz Combinators
+
+```js
+import * as Number from './src/Number/index.ts'
+import Collections from './src/Collections/index.ts'
+import * as Char from './src/Char/index.ts'
+import * as String from './src/String/index.ts'
+import { From } from './types.ts'
+
+const { Uniform: U } = Number
+
+while (true) {
+  let val = Collections.Set.New(
+    String.Repeat(Char.Digit(U), U(0, 10)),
+    U(0, 5)))
+
+  console.log(From(val))
+}
+```
+
+- Fuzzed values are created by combining higher-order-functions (combinators)
+- All fuzzing functions return either a literal value, or a thunk wrapping a literal value
+- All fuzzing functions must accept either literal values or thunks wrapping a literal value
+
+This 'literal or thunked' encoding can be expressed as a sum type:
+
+```haskell
+Wrapped       α =
+  Thunk () -> α |
+  Instant     α
+```
+
+Why is this indirection needed? When fuzzing, functions need to produce random outputs and possibly receive random inputs and modify them. So instead of a function needing to receive "static" values like
+
+```js
+repeat('a', 0, 10)
+```
+
+fuzzing functions should also support thunks
+
+```js
+repeat(() => 'a', () => 0, () => 10)
+```
+
+so that fuzzing functions can produce random values based on randomised parameters like 'length of output'.
+
+```js
+repeat(() => 'a', () => 0, () => Math.floor(Math.random() * 10))
+```
+
+this process is pretty general. All functions (with [currying](https://en.wikipedia.org/wiki/Currying#:~:text=In%20mathematics%20and%20computer%20science,each%20takes%20a%20single%20argument.)) can be encoded as having the type
+
+```haskell
+f: α -> β
+```
+
+that is, it takes a value of one type and returns a value of a (potentially different) type. Fuzzing combinators have a similar type signature.
+
+```haskell
+g : Wrapped α -> Wrapped β
+```
+
+any function (morphism) $f$ can be adapted to work with wrapped functions (like $g$) using a functor.
+
+```python
+def fmap(f):
+  return lambda(x):
+    if x is Thunk:
+      α = x()
+    if x is Instant:
+      α = x
+
+    return f(α)
+```
+
+```python
+g = fmap(f)
+```
+
+## The 'Combinator' Part
+
+Why are combinators the right abstraction to build fuzzing tools?
+
+You can take 'atomic' combinators that generate random letters, digits, etc, and combine them using combinators like repeat, optional. By building up & combining a collection of combinators, you can develop a reusable and readable set of fuzzers.
+
+For example, this block of code creates sets of digit-strings with randomised lengths.
+
+```js
+// don't worry about U, that will be discussed soon
+
+let $set = Collections.Set.New(
+  String.Repeat(Char.Digit(U), U(0, 10)), U(0, 5))
+```
+
+and this addition creates a fuzzer that generates arrays of these sets.
+
+```js
+let $arr = Collections.Array.New($set, U(0, 100))
+```
+
+More complex structures like response-bodies can be built up in this fashion.
+
+## Randomisation
+
+Some fuzzing operations (e.g `String.Repeat`) take parameters that control things like output length. Randomisation can be controlled with a probability density function, that dictates how often you wish to receive long-lengths, short-lengths, etc. The previous examples are scattered with references to `U`. This is an alias to `Number.Uniform`, which generates a [uniform distribution](https://en.wikipedia.org/wiki/Continuous_uniform_distribution) within certain bounds.
+
+To aid composability, I believe these distribution-parameters should be parameterised when building more complicated combinators. This allows 'inner values' to be tuned, at the expense of increasing the number of parameters. In practice sensible default distributions can make this less cumbersome.
+
+## Implementation
+
+How can this be used practically? I haven't implemented these combinators substantially, beyond a proof-of-concept in Typescript. I would like to write cross-language bindings to a fuzzer based in Golang, but its type-system is currently too weak. Golang 1.18 adds generics, but I'm unsure if the generic system is versatile enough to encode fuzz combinators.
+
+## Takeaway Points
+
+- Fuzzing can be implemented using a combinator-based abstraction
+- Randomisation can be controlled using density functions

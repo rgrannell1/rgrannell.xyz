@@ -1,0 +1,51 @@
+---
+tags: posts
+title: Cute Animal Pictures in my Terminal
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "cute-animal-pictures-in-my-terminal.html"
+subheading: An important part of my .zshrc
+---
+
+# Cute Animal Pictures in my Terminal
+
+I wanted cute pictures of my gecko in my terminal. I already had a tool — echo-with-colours fittingly named [gecko](https://github.com/rgrannell1/gecko) — that prints gecko ascii-art when I open my terminal.
+
+{% image "images/ascii_gecko.png", "a small asciiart gecko" %}
+
+But I wanted something better; random cute images of my pet converted to text. I used the open source tool [catimg](https://github.com/posva/catimg) to convert pet-pictures to unicode representations using a simple script
+
+```bash
+#!/bin/env sh
+
+encode_gecko () {
+  folder="$1"
+
+  if [ -z "$folder" ]; then
+    echo '[you must provide gecko pictures]'
+    return 1
+  fi
+
+  mkdir -p .dotfile_data/gecko
+  for file in $(fdfind . "$1" ); do
+    hash=$(echo "$file" | md5sum)
+    catimg "$file" -H 40 > ".dotfile_data/gecko/$hash"
+  done
+}
+```
+
+and catimg to print out the saved images at random on terminal load (by sourcing it in .zshrc)
+```bash
+show_gecko () {
+  cat "$(fdfind . "$HOME/.dotfile_data/gecko" | shuf -n 1)"
+}
+```
+
+The final results are very cute, if you like geckos!
+
+{% image "images/tophat_gecko.png", "my gecko in a tophat" %}
+
+## Takeaway Points:
+
+- `catimg` can convert images to terminal-printable representations
+- Geckos _will_ wear a top-hat peacefully, but only for a few seconds
