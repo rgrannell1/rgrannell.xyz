@@ -1,6 +1,5 @@
 node_modules/
 _site/
-images/
 # Local Netlify folder
 .netlify
 README.md
