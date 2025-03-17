@@ -8,9 +8,9 @@ const markdownIt = require("markdown-it");
 const Image = require("@11ty/eleventy-img");
 
 const constants = {
-  FORMATS: ['webp', 'jpeg'],
-}
-constants.WIDTHS = (function() {
+  FORMATS: ["webp", "jpeg"],
+};
+constants.WIDTHS = (function () {
   const arr = [null];
 
   for (let width = 200; width < 1600 / 50; width += 50) {
@@ -20,21 +20,21 @@ constants.WIDTHS = (function() {
   return arr;
 })();
 
-function imageShortcode(src, alt, sizes='100vw') {
+function imageShortcode(src, alt, sizes = "100vw") {
   const opts = {
     widths: constants.WIDTHS,
     formats: constants.FORMATS,
-    sizes
-  }
+    sizes,
+  };
 
   Image(src, opts);
 
   const attr = {
     alt,
     sizes,
-    loading: 'lazy',
-    decoding: 'async'
-  }
+    loading: "lazy",
+    decoding: "async",
+  };
 
   return Image.generateHTML(Image.statsSync(src, opts), attr);
 }
@@ -48,9 +48,9 @@ module.exports = function (cfg) {
 
   const highlighter = eleventyPluginSyntaxHighlighter;
 
-  cfg.addNunjucksShortcode('image', imageShortcode);
-  cfg.addLiquidShortcode('image', imageShortcode);
-  cfg.addJavaScriptFunction('image', imageShortcode);
+  cfg.addNunjucksShortcode("image", imageShortcode);
+  cfg.addLiquidShortcode("image", imageShortcode);
+  cfg.addJavaScriptFunction("image", imageShortcode);
 
   cfg.addPlugin(highlighter);
   //cfg.addLiquidFilter("dateToRfc3339", pluginRss.dateRfc3339);
@@ -66,7 +66,7 @@ module.exports = function (cfg) {
     "img",
     "videos",
     "specs",
-    "me.png"
+    "me.png",
   ];
 
   for (const thing of passThrough) {

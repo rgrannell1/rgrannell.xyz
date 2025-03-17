@@ -1,6 +1,5 @@
-
 :root {
-  --font-colour:hsla(0, 0%, 0%, 0.8);
+  --font-colour: hsla(0, 0%, 0%, 0.8);
   --navbar-font-colour: hsl(0, 0%, 0%);
   --background-color: hsl(0, 0%, 96%);
   --link-color: hsl(211, 100%, 35%);

@@ -1,0 +1,77 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/last-resort-debugging.html"
+title: Last Resort Debugging
+subheading: Using a sledgehammer when you've run out of scalpels...
+---
+
+# Last Resort Debugging
+
+When coworkers ask for help debugging their codebases I often say "just use strace" to them. Normally I'm joking; simpler tools like in-language debuggers and plain old print statements are enough to fix most problems. On the other hand, when you're out of other options these tools can be a life-saver. Not all programs are that observable; they might have little or no logging, or you might not have even written them or know what they do. I can think of a few cases where more advanced tooling has really helped me:
+
+- With about an hour's work, I found that CPU was high on one of our production server's because our DNS daemon was repeatedly reading `/etc/group`. This would have been fine, if that file wasn't about three hundred megabytes...
+- Finding out which files our cursed configuration management system was loading, to debug why it ignored my configuration
+- I OOMed my laptop when running `deno fmt` against my mildly haunted `websites` directory. Without having any notion of how that tool worked, [I was able to root-cause the issue within a few minutes](https://github.com/denoland/deno/issues/28519)
+
+I have to admit I'm writing this just so I remember to use one of these recently discovered tools again, next time I see a fleet running out of memory (that is, soon).
+
+## Strace
+
+`strace` traces system-calls, signals, and process events. Ultimately that's a lot of the things your program actually does.
+
+The program output is not terribly easy to read (or scan with `grep`), so I often use [B3](https://github.com/dannykopping/b3) to parse it into something [`jq`](https://en.wikipedia.org/wiki/Jq_%28programming_language%29) can filter. I generally use it to see what syscalls a program is making (especially interesting if the program is terminating prematurely), and trace what files it is loading.
+
+I'll link to [Brendan Gregg's](https://www.brendangregg.com/blog/2014-05-11/strace-wow-much-syscall.html) list of one-liners, and include a few of my own.
+
+```bash
+# Trace all `open` syscalls for a command (including child processes), and write output to a file
+strace -f -o out.txt -e trace=open deno fmt
+
+# Trace syscall timings for a PID
+strace -c -p <pid>
+```
+
+## Heaptrace
+
+I've occasionally needed to get heapdumps for some of my companies', em, less robust Java services. It's always been painful, so I was impressed when I found a memory analysis tool that's pleasant to use. When I OOMed my laptop yesterday while working with `deno`, I wanted to find out why so much memory was being leaked. `heaptrack` (and `heaptrack_gui`) made this trivial:
+
+```bash
+heaptrack deno fmt
+heaptrack_gui heaptrack.deno.80887.zst
+```
+
+I've only just started using this tool, but the most useful things I've seen are:
+
+- Overall summaries of leaked memory
+- Tracking the call tree and which callers are leaking / allocating how much memory
+
+## Flamegraph
+
+Flamegraphs are a useful way of spotting what a program is spending time on. In work I've spotted services with excessive regular-expression calls (precompile and stop using [explosive regular expressions](https://en.wikipedia.org/wiki/ReDoS), people!) and lousy process handling within a few seconds of finding their flamegraphs.
+
+These used to be difficult to generate, but a coworker mentioned this nice utility.
+
+```bash
+cargo install flamegraph
+flamegraph -- deno fmt
+open flamegraph.svg
+```
+
+Neat!
+
+## /Proc & /Sys
+
+When all else fails, you'll probably find what you need in `/proc` and `/sys`. There's a lot in there (see my parser, [`procolli`!](https://github.com/rgrannell1/procolli)) but in short it's a virtual file-system that lets you inspect (and write) kernel level information about processes. A few uses I've found:
+
+- Spotting how commands were started (`/proc/<pid>cmdline`)
+- Inspecting the program environment (`/proc/<pid>/environ`)
+
+And in particular, spotting resource-contention. Without getting into too many details, many system failures are caused by too many processes trying to use too few resources. This leads to queueing (contention) which slows processes and can signify the OS OOM killer is about to strike. I've used this to diagnose _why_ some internal services are failing, in a way that looking at absolute resource usage would not allow.
+
+## Takeaway Points:
+
+- Debugging is found
+- It's more fun with powerful tooling
+- Just use `strace`
