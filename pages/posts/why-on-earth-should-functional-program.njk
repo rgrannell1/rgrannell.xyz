@@ -28,7 +28,7 @@ We don't see `goto` very often anymore, and we take [structured programming](htt
 
 > For that reason we should do (as wise programmers aware of our limitations) our utmost to shorten the conceptual gap between the static program and the dynamic process, to make the correspondence between the program (spread out in text space) and the process (spread out in time) as trivial as possible.
 
-I think this logic is solid. We _should_ make the program — and the process of what it does — transparent to the reader. We too often ignore that code is a form of communication between _people_, and that unreadable code can kill projects. When giving up `goto`, we gave up flexibility; no more arbitrary redirects, just if statements and loops with limited expressive power. In exchange, we gained legibility. Now we can see what a program does with less mental "spatial / temporal" untangling.
+I think this logic is solid. We _should_ make the program — and the process of what it does — transparent to the reader. We too often ignore that code is a form of communication between _people_, and that unreadable code can kill projects and badly delay development. When giving up `goto`, we gave up flexibility; no more arbitrary redirects, just if statements and loops with limited expressive power. In exchange, we gained legibility. Now we can see what a program does with less mental "spatial / temporal" untangling.
 
 We should perhaps continue with this principle beyond structural programming. Below I propose some principles we should follow until they'd have us [write something barbarous](https://en.wikipedia.org/wiki/Politics_and_the_English_Language#:~:text=Break%20any%20of%20these%20rules%20sooner%20than%20say%20anything%20outright%20barbarous.). Let's not forget that codebases are ultimately things people need to read, understand, and ideally not despise. Code is communication; both with the machine, and your fellow developers. Let's write well.
 
@@ -47,7 +47,7 @@ We should use scalpels when sledgehammers aren't needed. Our programs can be imp
 
 this listing prioritises simple, limited forms of computation over more advanced ones like metaprogramming (which can perform arbitrary program transforms and breaks all guarantees). Programs that are mostly static data plus a few loops are fairly legible. `n` interlocked class instances with local state are difficult to untangle in comparison, and just generally.
 
-Why functions over statements? When a function exists that prepackages functionality (like `map` for appying elementwise transformations) we should it that rather than reimplement it ad infinitum. This is often the most emphasised part of why Functional Programming is Good, but it misses the broader point. We should always avoid reinvention, and we should always use the least powerful tool for the job. We stopped using gotos, and we can move on from structured programming too and operate at higher levels of abstraction. Writing at a higher level of abstraction from machine-code more clearly communicates your intent. By the same principle: avoid using folds (which generalise recursion across a container with an accumulator) and instead prefer more specialised functional operations like `filter`
+Why functions over statements? When a function exists that prepackages functionality (like `map` for applying elementwise transformations) we should use it rather than reimplement it ad infinitum. This is often the most emphasised part of why Functional Programming is Good, but it misses the broader point. We should always avoid reinvention, and we should always use the least powerful tool for the job. We stopped using gotos, and we can move on from structured programming too and operate at higher levels of abstraction. Writing at a higher level of abstraction from machine-code more clearly communicates your intent. By the same principle: avoid using folds (which generalise recursion across a container with an accumulator) and instead prefer more specialised functional operations like `filter`
 
 **Restrict Ourselves Further**
 
@@ -67,11 +67,14 @@ def append(xs: list[T], x: T) -> list[T]:
   return xs + [x]
 ```
 
-generally, functional programmers do the same things in roundabout ways. There are performance implications to avoiding updating, reference, but a variety of [purely functional data structures](https://en.wikipedia.org/wiki/Purely_functional_data_structure) that perform well enough. One major upside is referentially transparent code is incapable of the spooky-action-at-a-distance effects that OOP can have, where some class four files over messes up your object in an innocuous looking method. With one-name, one-value, it's clear how your value is "modified"; simply look at what a function takes in and what it returns.
+(generally, functional programmers do the same things in roundabout ways). There are performance implications to avoiding updating, reference, but a variety of [purely functional data structures](https://en.wikipedia.org/wiki/Purely_functional_data_structure) that perform well enough. One major upside is referentially transparent code is incapable of the spooky-action-at-a-distance effects that OOP can have, where some class four files over messes up your object in an innocuous looking method. With one-name, one-value, it's clear how your value is "modified"; simply look at what a function takes in and what it returns.
+
+Most languages have pass-by-reference semantics (or something equivalent) that allows updates by pointer or reference. We can still get the best of referential transparency by avoiding excess mutation by reference within a function, and prohibiting updates by reference across function or class boundaries. This preserves locality of edits, making it easier to trace how state changes in a program.
 
 **Functions should only do one thing**
+We should split code into small functions and piece them together into programs. Each function is responsible for one logically atomic operation; it might make a HTTP request, it might process the request output, it might update a database column. It should not do all three things.
 
-We should spit code into small functions and piece them together into programs. This has a few benefits:
+This has a few benefits:
 
 _Split to limit complexity_
 
@@ -96,6 +99,6 @@ One important subcase is splitting side-effectful, impure code (e.g file reads, 
 
 **In Conclusion**
 
-Functional programming is not good because it lets us write less for loops. It is good because FP is a language of constraints, and constraints, patterns, regularity, predictability in code allows us to break complex problems into a form that we can hope to understand. Writing dumb, constrained, simple code in the functional style lets us obey Kernighan's Law —
+Functional programming is not good because it lets us write less for-loops. It is good because FP is a language of constraints, and constraints, patterns, regularity, predictability in code allows us to break complex problems into a form that we can hope to understand. Writing dumb, constrained, simple code in the functional style lets us obey Kernighan's Law —
 
 > Everyone knows that debugging is twice as hard as writing a program in the first place. So if you’re as clever as you can be when you write it, how will you ever debug it?
