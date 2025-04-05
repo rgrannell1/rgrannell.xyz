@@ -49,6 +49,89 @@ this listing prioritises simple, limited forms of computation over more advanced
 
 Why functions over statements? When a function exists that prepackages functionality (like `map` for applying elementwise transformations) we should use it rather than reimplement it ad infinitum. This is often the most emphasised part of why Functional Programming is Good, but it misses the broader point. We should always avoid reinvention, and we should always use the least powerful tool for the job. We stopped using gotos, and we can move on from structured programming too and operate at higher levels of abstraction. Writing at a higher level of abstraction from machine-code more clearly communicates your intent. By the same principle: avoid using folds (which generalise recursion across a container with an accumulator) and instead prefer more specialised functional operations like `filter`
 
+Lets looks at some examples. What guarantees do we lose as we advanced from types to metaprogramming?
+
+> _The basics; Types_
+
+Type-only programs aren't terrible useful practically ([for most people](https://www.youtube.com/watch?v=0mCsluv5FXA)). Types communicate information before runtime to our language's type-checker. The main guarantee type-based designs give (with caveats) is that all information needed is soundness-checking before your program even starts.
+
+```ts
+type Rating =  '⭐' | '⭐⭐' '⭐⭐⭐' | '⭐⭐⭐⭐' | '⭐⭐⭐⭐⭐'
+type BandRating = {
+  band: string,
+  rating:
+}
+```
+
+> _What we care about; Data_
+
+When I refer to data here, I mean static declarations of primitives / ADTs without additional class baggage like initialisers, validators, etc. Data declarations can potentially be checked by JSON Schema in addition to normal type-checking, but adds the complexity that it exists during runtime & we need to trace its scope, mutation, access, and GC tidy-up. [Substructural type systems](https://en.wikipedia.org/wiki/Substructural_type_system) also help move some of these checks back from runtime into the type-checker, but they're far from common.
+
+Data generally is legible. Read the data, and you know what it is, forever (depending on how you code, keep reading...).
+
+```ts
+const example: BandRating = {
+  'band':  'Your Favourite Band',
+  'rating': '⭐⭐⭐⭐⭐'
+}
+```
+
+> _What we unfortunately need; Code_
+
+The problems really begin here. We now introduce data transformations, so need to mentally track what data exists at a point of time, what state it's in, how it reached that state, and what might happen to it later. We've added a temporal dimension too, as changes occur across time. And we've added impurity; useful programs use IO and thus become indeterministic (there are no mathematical guarantees a server on the other side of a planet will return the expected content).
+
+_functions_ are preferable to statements on the grounds of choosing a single word instead of a sentence (i.e, prefering some pre-vended structure over rolling your own). They are the same from a complexity viewpoint in other respects.
+
+There are still some constraints that hold when using functions (ignoring generators and other oddities). Typed functions have known domains and codomains. We can see what variable names a function accesses and what subfunctions it calls. Functions are stateless; they hold no data (though they do have scope through which to see it). We can see what they return, and they operate under the rules of structured programming (though exceptions are, well, an exception).
+
+```ts
+function groupByRating(bands: [BandRating]) {
+  return Object.GroupBy(bands, ({ rating: Rating }) => rating);
+}
+```
+
+For some reason it was decided that bundling data with code was a good idea. So now we have _classes_, which give fewer guarantees. In particular, class instances have
+self-references on which they are encouraged to mutably set data. This means we need to check if each method uses this mutable state or are operating under normal function rules. Class-based designs build a web of interlinking instances each with their own little state objects, so now we move from a predominantly linear reading of code to needing to hold it all in our minds simultaneously.
+
+```ts
+class BandRating {
+  band: string
+  rating: Rating
+
+  constructor(band: string, rating: Rating) {
+    this.band = band;
+    this.rating = rating;
+  }
+}
+
+class BandRater {
+  bands: BandRating[]
+  grouped!: Record<Rating, BandRating[]>
+
+  constructor(bands: BandRating[]) {
+    this.bands = bands;
+    this.grouped = Object.GroupBy(bands, ({ rating: Rating }) => rating);
+  }
+}
+
+const rating = [
+  new BandRating('Your Favourite Band', '⭐⭐⭐⭐⭐')
+];
+const rater = new BandRater(rating)
+console.log(this.grouped);
+```
+
+With classes, we also start to creep into...
+
+> _... sheer Bedlam; metaprogramming_
+
+Initialisers, postinitialisers, callables, property decorators that make methods look like values. Direct scope access and modification. Arbitrary code rewrites at run time. Screwing around directly on the call stack. Redefining the definition of a bracket (R language). Redefining class inheritance at will. Adding [new and exciting control-flow operators](https://web.cs.wpi.edu/~jshutt/kernel.html). The options are endless, and constraints vanish.
+
+Once metaprogramming is involved; you can only hope the author made light and contained use of it. Otherwise the semantics of your language are completely rewritten, and you no longer speak it.
+
+> Things fall apart; the centre cannot hold;
+> Mere anarchy is loosed upon the world -- W. B. Yeats_ on metaprogramming -
+
 **Restrict Ourselves Further**
 
 There are further restrictions we can place on ourselves to make programs legible:
