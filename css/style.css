@@ -21,7 +21,6 @@ li::marker {
 body {
   font-size: 1.2em;
   color: var(--font-colour);
-  word-spacing: 0.27ex;
   background-color: var(--background-color);
 }
 
