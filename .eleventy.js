@@ -66,7 +66,7 @@ module.exports = function (cfg) {
     "img",
     "videos",
     "specs",
-    "me.png",
+    "me.jpg",
   ];
 
   for (const thing of passThrough) {
