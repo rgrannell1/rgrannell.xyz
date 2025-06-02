@@ -9,27 +9,32 @@
   --nav-border-color: hsl(0, 0%, 0%);
 }
 
+body {
+  margin-right: 50px;
+  margin-left: 50px;
+}
+
 li {
   list-style: square;
 }
 
 li::marker {
-  font-size: 0.75em;
+  font-size: 0.75rem;
   color: var(--marker-color);
 }
 
 body {
-  font-size: 1.2em;
+  font-size: 1.2rem;
   color: var(--font-colour);
   background-color: var(--background-color);
 }
 
 h1, h2 {
-  font-size: 2em;
+  font-size: 2rem;
 }
 
 h3, h4, h5, h6 {
-  font-size: 1.5em;
+  font-size: 1.5rem;
 }
 
 nav li {
@@ -43,9 +48,9 @@ nav ul {
 }
 
 nav {
-  margin-bottom: 2.2em;
+  margin-bottom: 2.2rem;
   padding: 15px 0px;
-  font-size: 1.5em;
+  font-size: 1.5rem;
   border-bottom: 4px solid var(--nav-border-color);
 }
 
@@ -82,9 +87,9 @@ nav li a {
 }
 
 h2 {
-  margin-top: 1.35em;
+  margin-top: 1.35rem;
 }
 
 section {
-  margin-left: 1.35em;
+  margin-left: 1.35rem;
 }
