@@ -1,0 +1,130 @@
+---
+tags: posts
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "posts/trouble-with-triples.html"
+title: Trouble with Triples
+subheading: (exclude the trekkie joke)
+---
+
+# Trouble with Triples
+
+I've recently migrated my photo website from a conceptually table-based design to a triplestore design.
+
+I was unhappy that, every time I wanted to expose a new piece of data to the website I'd need to modify tables, modify output formats, and in some cases creates a new output file.
+
+It also wasn't terribly performant. I had a complicated loading system, that would block certain subpage loads until their required assets were loaded (and allow the other assets to load lazily). But rendering still blocked on these files loading, and their encodings were far from minimal.
+
+Finally, I wanted a "semantic" layer. Photos have subjects and locations they were taken, cameras they were taken on, and a lot of other metadata. Good photo apps make it easy to find photos by subcategory, device, rating, subject, etc, etc, but this was harder to build with the adhoc table-format outputs I was using.
+
+To solve all of these problems, I moved to a [custom-build triplestore and serialisation format](https://github.com/rgrannell1/tribbledb).
+
+## Flexibility
+
+Triples are three values of the format
+
+```yaml
+(subject, predicate, object)
+```
+
+for example
+
+```yaml
+(Alice, knows, Bob)
+```
+
+a set of triples forms a graph, with `subject` and `target` being nodes and `predicate` being a labelled directional relationship between the two. These knowledge graphs can be extended and queried without the difficulties of nested joins, and inherently are an "open" format that new nodes and relations can be invented for. When using graphs, I need to care less about the structure and more about the content.
+
+Graph formats like `neo4j` support node typing (in the case above, `Person`) and properties (primitive values associated with a node, not a relation to another node). Tribbledb supports this, by interpreting URN-based nodes in the following way
+
+```yaml
+urn:<namespace>:<type>:<id>?[<prop>=<value>]+
+```
+
+for my own namespace, a triple describing the contents of a photos might be encoded as:
+
+```yaml
+(urn:ró:photo:abcdefg, subject, urn:ró:bird:ptyonoprogne-rupestris?context=wild)
+```
+
+Tribbledb unwraps the URNs into typed nodes with properties. Having this typing available speeds up search across the knowledge graph, and feeds into the schema functions I use to keep the triple-store in a coherent state.
+
+With this new graph structure, it takes far less development time to ship new information with my photos & render them in the client. I don't need to cross-join tables with manual loops, change publisher formats, change SQL, etc. Just generate a new triple, search for it through TribbleDB, and add it to my website.
+
+## Performance
+
+It wasn't especially fast to block waiting on three to six JSON files to load into the site before rendering. There were a few things I wanted to do:
+
+- Transmit less data
+- Transmit the most important data first
+- Use the data as soon as it arrived
+
+First, to transmit less data, I defined a serialisation format called "tribbles" (I like Star Trek) which assigns each term in the triple to a number ID, and only references the (shorter) ID in future. It's a line delimited format with two row types:
+
+```xml
+<id> <value_associated_with_id>
+<subject_id> <predicate_id> <object_id>
+```
+
+Here's a subset of data from my current tribble file.
+
+```yaml
+9 16 17
+18 "max_date"
+19 "1345523579000"
+9 18 19
+20 "thumbnail_url"
+21 "/9e77902d2b.webp"
+9 20 21
+22 "mosaic"
+23 "#878F87#7A8477#7F8C80#7B887C"
+```
+
+it's simple, but it transmits about 21k rows of information in ~200kb (compressed) text to the server.
+
+Better still, this format is extremely streamable. So rather than block for all the content to be transmitted, I stream and index these tribbles into TribbleDB asynchronously and render the page on changes. I ordered the tribbles so that the most crucial data is at the head of the file (album and image information) and less critical information (location, exif data) loads later. I also updated the rendering to asynchronously apprend to the page, as waiting for DOM elements for ~1.1k photos to append to the photos page was pretty main-thread blocking (yes, I should append on scroll).
+
+I also compute some triples on the client. For example:
+- If an album is tagged as having been photographed in a single country, I label all photos as having been taken in that country
+- URLs are converted from short CURIE format to something we can actually resolve
+- Mapping some primitive values like ratings into URN format
+
+The ability to derive knowledge from the existing knowledge graph is powerful, and saves even more bandwidth.
+
+I'm happy with the load time, even on bad coffee-shop WiFi.
+
+<video controls width="600">
+  <source src="/videos/reload.webm" type="video/webm">
+</video>
+
+There's also performance benefits to rendering. I previously had a lot of data in arrays, with $O(n)$ scans needed to render photos, find albums, etc. Now, we index the triples (~110ms) and then have constant-time retrieval by ID and performant index-lookup based searches.
+
+## Semantic layer
+
+Data was previously separated into multiple files that were difficult and slow to inter-join. They were combined by essentially for-looping across them and comparing IDs, which is clumsy enough to discourage it being done much. Now, all information about the photos, albums, and their contents are in a single data-store behind a simple search function.
+
+Now that the site has a single searchable datastore, it's easy to expose information in more places. Photo metadata pages link to the photo's style, country it was taken in, rating, subject, and exif information. And many of these properties have their own subpages
+
+{% image "images/metadata-page.png", "metadata page" %}
+
+Each "thing" (creative I know) has its own subpage, showing related photos, information like wikipedia pages and google maps links, and albums they show up in. This will be enhanced more over time, as I figure out an ontology to store information about museum exhibits, geography features, seasons, etc.
+
+{% image "images/things-page.png", "things page" %}
+
+The shared semantic layer makes it easy to gather various bits of human and machine annotation and use them in the actual page rendering. For example, for each category in a listing page (e.g `germany` in the listing `country`) I search the triple-store for an explicit cover relation. If none is found, I fall back to choosing a highly-rated photograph relating to that category. This allows me to annotate custom listings (e.g if I'd really like a particular picture for a Red Panda cover) over time without updating the code itself, while falling back to sensible defaults.
+
+{% image "images/countries.png", "metadata page" %}
+
+This semantic layer makes implementing search pretty trivial. In the near future I'll map this information into a query-language I've written (this project has so many subprojects) to allow fast queries across all my photos. I'm aiming for queries. So I can search for things like
+
+```yaml
+season:Winter architecture:Moorish country:Portugal
+```
+
+to return results instantly, and use basic JavaScript-autocomplete that leans on the tribble index to make it easy to write such queries.
+
+## Takeaway Points
+
+- Data-intensive clients should choose performant, unified data-stores
+- Streaming data-loading makes the client fast
+- Triple-stores are a useful way to query highly interrelated datasets
