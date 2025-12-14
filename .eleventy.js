@@ -1,9 +1,6 @@
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const pluginRss = require("@11ty/eleventy-plugin-rss");
 const markdownItKaTeX = require("markdown-it-katex");
-const eleventyPluginSyntaxHighlighter = require(
-  "@11ty/eleventy-plugin-syntaxhighlight",
-);
 const markdownIt = require("markdown-it");
 const Image = require("@11ty/eleventy-img");
 
@@ -46,14 +43,13 @@ module.exports = function (cfg) {
     markdownIt({ html: true }).use(markdownItKaTeX),
   );
 
-  const highlighter = eleventyPluginSyntaxHighlighter;
+  const highlighter = syntaxHighlight;
 
   cfg.addNunjucksShortcode("image", imageShortcode);
   cfg.addLiquidShortcode("image", imageShortcode);
   cfg.addJavaScriptFunction("image", imageShortcode);
 
   cfg.addPlugin(highlighter);
-  //cfg.addLiquidFilter("dateToRfc3339", pluginRss.dateRfc3339);
   cfg.addPlugin(pluginRss);
 
   // copy these inodes as-is
