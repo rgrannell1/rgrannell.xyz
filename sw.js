@@ -1,7 +1,6 @@
 const CSS_DIR = "css";
 
 const resources = [
-  `/${CSS_DIR}/marx.min.css`,
   `/${CSS_DIR}/katex.min.css`,
   `/${CSS_DIR}/github.markdown.css`,
   `/${CSS_DIR}/marx.min.css`,
