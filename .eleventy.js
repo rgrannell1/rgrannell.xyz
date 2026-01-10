@@ -40,7 +40,7 @@ module.exports = function (cfg) {
   cfg.addPlugin(syntaxHighlight);
   cfg.setLibrary(
     "md",
-    markdownIt({ html: true }).use(markdownItKaTeX),
+    markdownIt({ html: true, linkify: true, typographer: true }).use(markdownItKaTeX),
   );
 
   const highlighter = syntaxHighlight;
