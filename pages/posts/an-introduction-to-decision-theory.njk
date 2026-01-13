@@ -12,9 +12,9 @@ subheading: ""
 
 > First, a caveat. I am not a mathematician, I just use their tools sometimes. This post does not cover the axioms of decision theory, and does not cover probability theory with much rigour. Reader beware.
 
-I'd like to give a minimal outline of Decision Theory and how it can be applied. Decision theory[1] is the multidiciplinary application of probability theory which describes how individuals rationally act under uncertainty. It is a formalisation (with many sets of axioms and tools to chose from) of how we choose an actions to maximise the good of an outcome (the utility) or minimise the bad (the loss, an equivalent but opposite framing).
+I'd like to give a minimal outline of Decision Theory and how it can be applied. Decision theory[1] is the multidiciplinary application of probability theory which describes how individuals rationally act under uncertainty. It is a formalisation (with many sets of axioms and tools to chose from) of how we choose an action to maximise the good of an outcome (the utility) or minimise the bad (the loss, an equivalent but opposite framing).
 
-People can be right without reasoning, or reasonable without being right. Placing all your earnings on Twelve Black at a roulete table is an bad decision [2] but you might win a lot of money. Or you might chose to have an almost-always-successful medical proceedure and have bad results. Decision theory focuses on rational decisions with respect to an understanding of the options available and what you value.
+People can be right without reasoning, or reasonable without being right. Placing all your earnings on Twelve Black at a roulete table is a bad decision [2] but you might win a lot of money. Or you might chose to have an almost-always-successful medical proceedure and have bad results. Decision theory focuses on rational decisions with respect to an understanding of the options available and what you value.
 
 ## Making Decisions...
 
@@ -31,7 +31,7 @@ $u(a, s) > u(b, s)$ for every outcome $s \in S$ where $S$ is the set of world st
 
 What is a utility function? Conceptually, it measures how satisfied you are of some outcome; getting tea instead of coffee, losing roulette vs winning. In practical terms it is a real-valued cost function that establishes a ranked preference relation between all outcomes.
 
-> Note: Decision theory formalises rational decision-making but there are many decisions to make when choosing to model situations using it. Do not treat being handed €1,000 and a 50:50 change of €2,000 or €0 as equivalent as a basic utility model would state. Small formulae do not adequately capture human psychology, value, and uncertainty. The map is not the territory.
+> Note: Decision theory formalises rational decision-making but there are many decisions to make when choosing to model situations using it. Do not treat being handed €1,000 and a 50:50 chance of €2,000 or €0 as equivalent as a basic utility model would state. Small formulae do not adequately capture human psychology, value, and uncertainty. The map is not the territory.
 
 ## ...Under Uncertainty
 
@@ -182,7 +182,7 @@ The expected value of our beta distribution is $0.625$, so under expected utilit
 It's worth trying to see pandas several times even with imperfect odds. But
 we've acknowledged and captured the uncertaintly in our model $p$ and in a way discounted the risk of not seeing a panda. Expected-utility maximisation is risk-neutral and focuses on expected utility alone.
 
-Can we make decisions that account for the our distribution $p$ rather than its expected value alone?
+Can we make decisions that accounts for a distribution $p$ rather than its expected value alone?
 
 ## ...Less Uncertainty, Please!!
 
@@ -294,7 +294,7 @@ There's a problem
 
 $$\text{Var}(A_{\text{cheap}}) >> \text{Var}(A_{\text{dear}})$$
 
-Our cheaper machine works on average, but occasionally and unpredictable performance is abysmal. "it works on average" is not reassuring; to make the same joke twice, if we dispense the wrong medication to someone they don't think about about utility-payoffs maximisation; they die. The cheaper machine works by a crude bar, but we have no _basis to trust the cheaper machine on account of how variable its performance is_.
+Our cheaper machine works on average, but occasionally and unpredictably performance is abysmal. "it works on average" is not reassuring; to make the same joke twice, if we dispense the wrong medication to someone they don't think about about utility-payoffs maximisation; they die. The cheaper machine works by a crude bar, but we have no _basis to trust the cheaper machine on account of how variable its performance is_.
 
 For non-critical applications, choosing a cheaper machine with mixed-bag often-acceptable results might be rational, especially if it dramatically increases expected utility. But when mistakes matter, when "what could go wrong?" has unpleasant answers, for jobs where we are expected to uphold high standards, responsible people will not trust do-anything machines to run safety-critical tasks.
 
@@ -302,7 +302,7 @@ We should pay extra not for higher average performance, but to reduce the risk o
 
 ---
 
-This entire blog-post was written to teach how to conceptually risk-model whether to use LLMs in an automation. I've felt that too often people focus on whether they can simple do a task at all instead of how repeatedly, how reliably, and how independently, with how much trust. LLMs can _do_ many tasks; we should always consider "how reliably".
+This entire blog-post was written to teach how to conceptually risk-model whether to use LLMs in an automation. I've felt that too often people focus on whether they can simply do a task at all instead of how repeatedly, how reliably, and how independently, with how much trust. LLMs can _do_ many tasks; we should always consider "how reliably".
 
 Please, think of more than the average-case behaviour when applying LLMs to safety-critical infrastructure. They may[6] handle medical diagnosis, financial analysis, fraud detection, eating disorder hotlines, and therapy sessions well on average, but what do the worst-cases look like? Life-ruiningly bad. Ethical, competent engineers build systems that work and work reliably, especially when lives are at stake.
 
