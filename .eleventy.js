@@ -3,6 +3,9 @@ const pluginRss = require("@11ty/eleventy-plugin-rss");
 const markdownItKaTeX = require("markdown-it-katex");
 const markdownIt = require("markdown-it");
 const Image = require("@11ty/eleventy-img");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
 const constants = {
   FORMATS: ["webp", "jpeg"],
@@ -37,6 +40,13 @@ function imageShortcode(src, alt, sizes = "100vw") {
 }
 
 module.exports = function (cfg) {
+  cfg.addGlobalData("cssHash", () => {
+    const cssDir = "./css";
+    const files = fs.readdirSync(cssDir).filter(f => f.endsWith(".css"));
+    const content = files.map(f => fs.readFileSync(path.join(cssDir, f))).join("");
+    return crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
+  });
+
   cfg.addPlugin(syntaxHighlight);
   cfg.setLibrary(
     "md",
