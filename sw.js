@@ -1,25 +1,18 @@
-const CSS_DIR = "css";
-
-const resources = [
-  `/${CSS_DIR}/katex.min.css`,
-  `/${CSS_DIR}/github.markdown.css`,
-  `/${CSS_DIR}/marx.min.css`,
-  `/${CSS_DIR}/style.css`,
-  `/${CSS_DIR}/prism-laserwave.css`,
-];
-
-self.addEventListener("install", function (event) {
-  event.waitUntil(
-    caches.open("sw-cache").then(function (cache) {
-      return Promise.all(resources.map((resource) => cache.add(resource)));
-    }),
-  );
-});
-
+// Cache-first for versioned assets (CSS with ?v=hash), network-first for everything else
 self.addEventListener("fetch", function (event) {
-  event.respondWith(
-    caches.match(event.request).then(function (response) {
-      return response || fetch(event.request);
-    }),
-  );
+  const url = new URL(event.request.url);
+
+  // Versioned assets can be cached indefinitely
+  if (url.search.includes("v=")) {
+    event.respondWith(
+      caches.match(event.request).then(function (cached) {
+        return cached || fetch(event.request).then(function (response) {
+          return caches.open("v1").then(function (cache) {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        });
+      })
+    );
+  }
 });
