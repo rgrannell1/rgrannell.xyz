@@ -93,3 +93,7 @@ h2 {
 section {
   margin-left: 1.35rem;
 }
+
+html {
+  min-height: 100vh;
+}
