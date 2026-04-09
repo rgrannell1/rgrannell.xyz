@@ -66,6 +66,7 @@ module.exports = function (cfg) {
   const passThrough = [
     "css",
     "fonts",
+    "js",
     "manifest.webmanifest",
     "sw.js",
     "icons",

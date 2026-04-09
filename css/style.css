@@ -29,6 +29,10 @@ body {
   background-color: var(--background-color);
 }
 
+main {
+  backdrop-filter: blur(3px);
+}
+
 h1, h2 {
   font-size: 2rem;
 }
@@ -97,4 +101,14 @@ section {
 html {
   min-height: 100vh;
   min-width: 100vh;
+}
+
+#wallpaper, .full-width-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  display: block;
 }
