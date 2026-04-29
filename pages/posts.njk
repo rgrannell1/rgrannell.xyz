@@ -11,12 +11,26 @@ I don't post often, but it'll normally be related to programming or mathematics.
 
 <section>
 
-<ul>
-{%- for post in collections.posts -%}
-  <li><div>
+{% set currentYear = "" %}
+{%- for post in collections.posts | sort(attribute="date") | reverse -%}
+  {% if post.data.date %}
+    {% set postYear = post.data.date | year %}
+    {% if postYear != currentYear %}
+      {% if not loop.first %}</ul>{% endif %}
+      <h3>{{ postYear }}</h3>
+      <ul>
+      {% set currentYear = postYear %}
+    {% endif %}
+  {% elif loop.first %}
+    <ul>
+  {% endif %}
+  <li>
     <a href="{{ post.data.permalink }}">{{ post.data.title }}</a>
-    <p>{{ post.data.subheading }}</p>
-  </div></li>
+    <div class="post-meta">
+      {% if post.data.date %}<time>{{ post.data.date | date("YYYY-MM-DD") }}</time>{% endif %}
+      {% if post.data.subheading %}<span class="post-subheading">{{ post.data.subheading }}</span>{% endif %}
+    </div>
+  </li>
 {%- endfor -%}
 </ul>
 

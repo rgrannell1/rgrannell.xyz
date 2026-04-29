@@ -48,6 +48,15 @@ export default function (cfg) {
     return crypto.createHash("md5").update(content).digest("hex").slice(0, 8);
   });
 
+  cfg.addFilter("date", (value, format) => {
+    const date = new Date(value);
+    return date.toISOString().slice(0, 10);
+  });
+
+  cfg.addFilter("year", (value) => {
+    return new Date(value).getFullYear();
+  });
+
   cfg.addPlugin(syntaxHighlight);
   cfg.addPlugin(pluginRss);
   cfg.setLibrary(
