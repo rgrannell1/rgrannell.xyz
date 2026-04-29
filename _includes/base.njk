@@ -43,8 +43,10 @@
     </ul>
   </nav>
   <body>
+    {% if showWallpaper %}
     <canvas id="wallpaper" class="full-width-canvas"></canvas>
     <script src="/js/wallpaper.js"></script>
+    {% endif %}
     <main>
     {{ content | safe }}
 
