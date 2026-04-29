@@ -40,6 +40,7 @@ function imageShortcode(src, alt, sizes = "100vw") {
 }
 
 export default function (cfg) {
+  cfg.addGlobalData("siteUrl", "https://rgrannell.xyz");
   cfg.addGlobalData("cssHash", () => {
     const cssDir = "./css";
     const files = fs.readdirSync(cssDir).filter(f => f.endsWith(".css"));
