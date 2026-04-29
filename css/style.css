@@ -103,6 +103,16 @@ html {
   min-width: 100vh;
 }
 
+.post-meta {
+  font-size: 0.8em;
+  color: hsl(0, 0%, 50%);
+  margin-top: 0.1em;
+}
+
+.post-meta time + .post-subheading::before {
+  content: " · ";
+}
+
 #wallpaper, .full-width-canvas {
   position: fixed;
   top: 0;
