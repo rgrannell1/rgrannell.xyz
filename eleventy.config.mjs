@@ -1,11 +1,11 @@
-const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
-const pluginRss = require("@11ty/eleventy-plugin-rss");
-const markdownItKaTeX = require("markdown-it-katex");
-const markdownIt = require("markdown-it");
-const Image = require("@11ty/eleventy-img");
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
+import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
+import pluginRss from "@11ty/eleventy-plugin-rss";
+import markdownItKaTeX from "markdown-it-katex";
+import markdownIt from "markdown-it";
+import Image from "@11ty/eleventy-img";
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 const constants = {
   FORMATS: ["webp", "jpeg"],
@@ -39,7 +39,7 @@ function imageShortcode(src, alt, sizes = "100vw") {
   return Image.generateHTML(Image.statsSync(src, opts), attr);
 }
 
-module.exports = function (cfg) {
+export default function (cfg) {
   cfg.addGlobalData("cssHash", () => {
     const cssDir = "./css";
     const files = fs.readdirSync(cssDir).filter(f => f.endsWith(".css"));
@@ -48,21 +48,16 @@ module.exports = function (cfg) {
   });
 
   cfg.addPlugin(syntaxHighlight);
+  cfg.addPlugin(pluginRss);
   cfg.setLibrary(
     "md",
     markdownIt({ html: true, linkify: true, typographer: true }).use(markdownItKaTeX),
   );
 
-  const highlighter = syntaxHighlight;
-
   cfg.addNunjucksShortcode("image", imageShortcode);
   cfg.addLiquidShortcode("image", imageShortcode);
   cfg.addJavaScriptFunction("image", imageShortcode);
 
-  cfg.addPlugin(highlighter);
-  cfg.addPlugin(pluginRss);
-
-  // copy these inodes as-is
   const passThrough = [
     "css",
     "fonts",
@@ -79,4 +74,4 @@ module.exports = function (cfg) {
   for (const thing of passThrough) {
     cfg.addPassthroughCopy(thing);
   }
-};
+}
