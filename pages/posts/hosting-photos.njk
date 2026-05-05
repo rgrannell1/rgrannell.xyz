@@ -12,11 +12,11 @@ subheading: ""
 
 I used to share my photographs on Google Photos, but I've decided to move away from [essentially untrustworthy](https://pluralistic.net/tag/enshittification/) large tech companies. In Google's case, they deeply annoyed me with the [incredibly user-hostile change of stripping location-information from photos](https://issuetracker.google.com/issues/80379228), making it harder to move to a different service [1]. Then, [they announced they are deleting this data](https://www.malwarebytes.com/blog/news/2024/06/google-will-start-deleting-location-history) [2]. Hosting photographs isn't _that_ hard, so I removed most of the middle-men [3] and built my own website.
 
-My photos are now hosted at [https://photos.rgrannell.xyz](photos.rgrannell.xyz). There were two large projects involved
+My photos are now hosted at [https://photos.rho.ie](photos.rho.ie). There were two large projects involved
 in moving:
 
 - [mirror](https://github.com/rgrannell1/mirror), which manages photo metadata and uploads encoded photos to DigitalOcean Spaces
-- [photos.rgrannell.xyz](https://github.com/rgrannell1/photos.rgrannell.xyz), a Lit-based progressive-web app that displays the photos
+- [photos.rho.ie](https://github.com/rgrannell1/photos.rgrannell.xyz), a Lit-based progressive-web app that displays the photos
 
 I'll discuss the technical details, then what I actually like about the website and how I plan to develop it.
 
@@ -27,17 +27,17 @@ The most difficult part of creating mirror was deciding how I would associate me
 For example:
 ```yaml
 ![PXL_20240317_134432737.jpg](PXL_20240317_134432737.jpg)':
-      user.xyz.rgrannell.photos.tags:
+      user.ie.rho.photos.tags:
       - Statue
       - Published
       - Bristol
-  user.xyz.rgrannell.photos.album_cover: PXL_20240317_133323050.jpg
-  user.xyz.rgrannell.photos.album_title: Bristol
+  user.ie.rho.photos.album_cover: PXL_20240317_133323050.jpg
+  user.ie.rho.photos.album_title: Bristol
 ```
 
-these properties are mapped onto albums and images as [extended attributes](https://en.wikipedia.org/wiki/Extended_file_attributes), and synced to a local Sqlite database. To publish images, mirror finds entries tagged `Published` and upload thumbnails & full-size images to DigitalOcean Spaces. Metadata about what is currently published is written locally to `photos.rgrannell.xyz`
+these properties are mapped onto albums and images as [extended attributes](https://en.wikipedia.org/wiki/Extended_file_attributes), and synced to a local Sqlite database. To publish images, mirror finds entries tagged `Published` and upload thumbnails & full-size images to DigitalOcean Spaces. Metadata about what is currently published is written locally to `photos.radiotelephonyho.ie`
 
-## photos.rgrannell.xyz
+## photos.radiotelephonyho.ie
 
 The site loads three JSON files describing my photo-albums:
 - albums.json
