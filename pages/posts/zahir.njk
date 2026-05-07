@@ -8,6 +8,8 @@ permalink: "zahir.html"
 subheading: ""
 ---
 
+# Zahir
+
 > Perhaps I shall conclude by wearing away the Zahir simply through thinking of it again and again.
 
 Around Christmas, out of a mix of curiousity, need for an improved photo-encoding backend, and reasons known to a few coworkers I decided to build a workflow engine. The main insights that I started from was that:
@@ -138,10 +140,10 @@ The strict factoring of any interesting interprocess logic into effects and hand
 
 Zahir emits telemetry during execution but I wanted to decouple metric aggregation into its own layer. This part is still in development, but it's somewhat lifted from algebird and structures aggregations as a combiner monoid and ways of inserting into and extracting from that type.
 
-- `insert`: event -> monoid: lift the event into the monoid so we can combine it
-- `combine`: a way of combining two state objects
-- `empty`: an empty state object
-- `extract`: monoid -> returnType: extract into a final result
+- `insert`: `event -> monoid`: lift the event into the monoid so we can combine it
+- `combine`: `monoid -> monoid -> monoid` a way of combining two state objects
+- `empty`: `monoid` an empty state object
+- `extract`: `monoid -> returnType`: extract into a final result
 
 It's worked reasonably well so far; many things can be represented in this way, and complex aggregates can be stitched together. But, there's a lot of work needed for this concept to really prove itself. Managing progress bar statistics is not a very complex application of this structure & the associated combinators.
 
@@ -152,7 +154,7 @@ Ultimately, the same as before. The layered architecture worked out as planned; 
 {% image "images/progress.png", "a progress bar" %}
 
 
-At the moment, Zahir is more of a concurrent runtime than a true workflow engine. I'm still trying to design a persistence mechanism that's more general-purpose than pretending jobs are functionally pure or implementing `EGetState` / `ESetState` and delegating that task to workers themselves. But, perhaps that's missing the moral of the compositional approach where we layer responsibilities rather than broaden them. In any case, I need to think of it again and again (Zahir really was the right name for this project...)
+At the moment, Zahir is more of a concurrent runtime than a true workflow engine. I'm still trying to design a persistence mechanism that's more general-purpose than pretending jobs are functionally pure or implementing `EGetState` / `ESetState` and delegating that task to workers themselves. But, perhaps that's missing the moral of the compositional approach where we layer responsibilities rather than broaden them. In any case, I need to think of it again and again (Zahir really was [the right name](https://en.wikipedia.org/wiki/The_Zahir) for this project...)
 
 ### Takeaway Points
 
