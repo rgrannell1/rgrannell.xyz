@@ -112,7 +112,9 @@ html {
     margin-left: 0;
   }
 
-  pre {
+  pre, code,
+  pre[class*="language-"], code[class*="language-"] {
+    font-size: 0.8rem;
     max-width: 100%;
     overflow-x: auto;
   }
