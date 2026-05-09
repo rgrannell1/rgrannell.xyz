@@ -111,6 +111,11 @@ html {
   section {
     margin-left: 0;
   }
+
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
 }
 
 .post-meta {
