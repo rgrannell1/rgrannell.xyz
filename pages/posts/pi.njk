@@ -1,0 +1,56 @@
+---
+tags: posts
+title: Finding PI
+date: 2020-11-09
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "finding-pi.html"
+subheading: An accidentally discovered algorithm, if an obvious one
+---
+
+# Finding Pi
+
+As one does, I was generating random arithmetic expressions and scoring by minimum descriptive length and how many digits of $\pi$ it approximated. I don't really like integer approximations of $\pi$ as a "shorthand", as they often aren't particularly short. I figured by exploring a larger space of expresssions I might find something useful. I mostly found noise like: 
+
+```
+[ 21/32] best=6.05 digits  sqrt(exp(-8) - ((-13) + sqrt(2 ** (-11) - ((-13) + cos(-11) + sqrt(exp(-1) - ((-13) + sqrt(10)))))))
+[ 23/32] best=7.71 digits  sqrt(10 - (3 - sqrt(sqrt(sqrt(3) ** (-15) - (sqrt(sqrt(11)) + (-13)))) + (-2)) - sin(-5))
+[ 20/32] best=6.69 digits  sqrt(sqrt((-15) / 10 + log(9)) / exp(10) + (3 / ((-13) + (-10)) + 10))
+```
+
+But I did spot one gem:
+
+$$3 + sin(3) + sin(3 + sin(3))$$
+
+I could see this was most likely part of an infinite sum for $\pi$, which I was glad to confirm! The summation can be expressed recursively as:
+
+```haskell
+f 0 = 3
+f n = f(n - 1) + sin(f(n - 1))
+```
+
+or iteratively as 
+
+```python
+x = x + sin(x)
+```
+
+## Why does this compute $\pi$?
+
+`sin(x)`:
+
+- is positive when $x$ is smaller than $\pi$, so the sum grows in those cases
+- is negative when $x$ is larger than $\pi$, so the sum shrinks towards $\pi$
+- falls off to zero as $x \to \pi$, so the sum converges
+
+So, the sum or fixed point of the function converges towards $\pi$ given a reasonable starting value, fairly rapidly: the number of accur	ate digits roughly triples each step.
+
+step | value                            | digits
+-----+----------------------------------+-------
+   0 | 3.00000000000000000000           | 1
+   1 | 3.14112000805986735230           | 4
+   2 | 3.14159265357219563697           | 11
+
+## Is it useful?
+
+Like most approximations of $\pi$, not really. It converges quickly, but repeatedly computing `sin` (for which you need to know $\pi$) is a worse problem than we started with.
