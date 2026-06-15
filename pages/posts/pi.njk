@@ -1,6 +1,6 @@
 ---
 tags: posts
-title: Finding PI
+title: Finding Pi
 date: 2026-05-28
 layout: "base.njk"
 templateEngineOverride: md, njk
@@ -10,7 +10,7 @@ subheading: An accidentally discovered algorithm, if an obvious one
 
 # Finding Pi
 
-As one does, I was generating random arithmetic expressions and scoring by minimum descriptive length and how many digits of $\pi$ it approximated. I don't really like integer approximations of $\pi$ as a "shorthand", as they often aren't particularly short. I figured by exploring a larger space of expresssions I might find something useful. I mostly found noise like: 
+As one does, I was generating random arithmetic expressions and scoring by minimum descriptive length and how many digits of $\pi$ it approximated. I don't really like integer approximations of $\pi$ as a "shorthand", as they often aren't particularly short. I figured by exploring a larger space of expresssions I might find something useful. I mostly found noise like:
 
 ```python
 [ 21/32] best=6.05 digits  sqrt(exp(-8) - ((-13) + sqrt(2 ** (-11) - ((-13) + cos(-11) + sqrt(exp(-1) - ((-13) + sqrt(10)))))))
@@ -29,7 +29,7 @@ f 0 = 3
 f n = f(n - 1) + sin(f(n - 1))
 ```
 
-or iteratively as 
+or iteratively as
 
 ```python
 x = x + sin(x)

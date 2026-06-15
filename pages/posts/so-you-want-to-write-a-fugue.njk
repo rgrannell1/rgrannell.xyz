@@ -1,0 +1,142 @@
+---
+tags: posts
+title: So You Want to Write a Fugue?
+date: 2026-06-15
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "so-you-want-to-write-a-fugue.html"
+subheading: (to MP4, in bulk)
+---
+
+# So You Want to Write a Fugue?
+
+> (To MP4)
+
+I've played piano for a long time, but never got around to learning sheet music. I did, a few ... a lot of years ago, learn how to sight-read a [piano tab](https://synthesiagame.com/) format so I could quickly pick up new pieces without the slog of memorisation. It's still ultimately difficult to sight-read anything, and I tend to play a lot of [counterpoint-dense](https://www.youtube.com/watch?v=CpnfQntMisc)[1] music which requires you to conceive of several independent melody lines interacting instead of more [chunkable](https://en.wikipedia.org/wiki/Chunking_(psychology)) homophonic pieces.
+
+I noticed lately that I wasn't playing as much as I used to, out of technical irritation. To practice I'd:
+
+- Unlock my old iPad
+- Load YouTube (variable success)
+- Search "Bach synthesia", after several misspellings of "synthesia"
+- After about five minutes, actually find the piece I wanted to play
+
+That faffing around was enough to put me off wanting to play as often; it wasn't fun, it was just irritating. So, I replaced it with a custom website.
+
+My plan was to:
+
+- Scrape every Bach midi I could find (I mostly play Bach)
+- Render them to MP4 using synthesia or a synthesia-alike
+- Build a static website
+- Develop Liszt-level virtuosity
+
+## Rendering One Video
+
+I used [MIDIVisualiser](https://github.com/kosua20/MIDIVisualizer) to render the MIDI visuals, with about four seconds render-ahead being the sweet spot balancing being able to make out the precise note timing and letting me read ahead enough to make playing more complex sequences easy. One catch was that this tool did not actually render the MIDI soundfont; that I handled with [fluidsynth](https://www.fluidsynth.org/) and an ffmpeg audio + video join.
+
+```bash
+ffmpeg -i video.mp4 -i audio.wav \
+    -af adelay=2000:all=1 \
+    -c:v copy \
+    -c:a aac \
+    -b:a 192k \
+    -movflags +faststart \
+    out.mp4
+```
+
+## Rendering One Thousand
+
+My laptop is not fit for huge amounts of video rendering without melting. Even parallel renders in [my workflow engine Zahir](https://github.com/rgrannell1/zahir) crawled; a quick back-of-the-envelope (well, spiritually, it was in my notebook) calculation estimated it'd amount to a few thousand render-hours, amounting to about 200GB of output. Life is short, and I thought it'd be fun to extend Zahir to handle this.
+
+When I initially rewrote it, there were two omissions I planned to leave indefinitely:
+- Storage: I didn't like the typical durable job approach in workflow engines
+- Networking: In theory Zahir could run across many computers, but I had no need for it.
+
+The first was _mostly_ solved by [Funes](https://github.com/rgrannell1/funes); I realised I just wanted to cache the results of expensive computations, it made little odds to me if the rest of the job reran from scratch so long as the slow parts accepted cached results. Funes followed a
+
+```python
+with Store(...) as store:
+	res = store.get(fn_call, args)
+```
+
+pattern for modelling this storage. It's an imperfect abstraction, since it models resource idempotency by "memory" vs by actual detection, but it's good enough for the moment & can be extended.
+
+The second gap, networking, was something I expected I would never find a reason to solve. As mentioned in the [blog post on Zahir](https://rho.ie/zahir), it follows a layered architecture with a zeromq Erlang-alike dialect managing IPC. Zeromq does support encrypted TCP as a transport layer, and I did want to render a lot of things in parallel, so I extended Tertius to:
+
+- Parameterise the transport layer out; ultimately the effect system didn't really care about _how_ broker-dealer sockets were established to wherever; only some minor setup logic made that distinction.
+- Add a `join` operation to allow external processes to send a handshake to link in with the local's dealer by establishing a socket.
+
+Zahir previously coupled runtime setup (spinning up an overseer process and worker processes with Tertius) with dispatching jobs and awaiting results. I split out the runtime setup into a `setup(...)` function, with an analogue `setup_remote` that set up a TCP runtime with the specified IP addresses. Each remote worker sleep-looped and effected `EWhereis` until assigned a pid (until registered).
+
+```python
+for event in evaluate(setup(n_workers=4), "book_workflow", ("war-and-peace.txt",), scope):
+    print(event)  # {"longest_words": [...]}
+```
+
+Those two small changes were enough to make Zahir a multi-host workflow engine!
+
+To provision the hosts, I created [do](https://github.com/rgrannell1/do/blob/main/src/do/droplets.py); a triplet of Zahir workflows for actually provisioning hosts using Zahir and DigitalOcean's client.
+
+- `create_droplet`: provision a tagged-VM with an SSH key and wait for it to spin up
+- `create_swarm`: that, concurrently
+- `destroy_swarm`: teardown all tagged VMs
+
+Things would have been conceptually tidier if I'd used pre-baked container images; instead I used an SSH jumpbox to run the main process and a pile of Ansible to install system dependencies and get Zahir and the relevant workflow dispatched to every host. _It is_ sort of cheating to use another workflow engine to provision a workflow engine, but I just wanted something that worked. After Ansible's help actually installing software, Zahir took over and distributed about eight hundred MIDI render jobs across hosts.
+
+I was impatient, I provisioned the default maximum of twenty-five VMs to act as Zahir workers. It still took about twenty hours of wall-clock time to render, with me periodically killing things to try to improve the progress bar logic in vain.
+
+Finally, a simple `rsync` fetch back to my laptop. The bill was substantial but not outrageous, and I had my videos. Then, after realising Apple disliked my choice of video codec, another long wait for `H.264` transcoding locally.
+
+## Showing One Thousand
+
+Next, I wanted a website to host this. I didn't want to host many gigabytes of video on Cloudflare ([my photo website](https://photos.rgrannell.xyz/) uses enough storage already), so I figured I'd run something locally. I still wanted a domain; thankfully that can be done with [`.local`](https://en.wikipedia.org/wiki/.local). Avahi-daemon allows publication of domain to LAN-IP records over [mDNS](https://en.wikipedia.org/wiki/Multicast_DNS); in my case `rho.local` points to my laptop. It hits a Caddy reverse proxy, which in turn routes to Docker files running each of my local websites (currently just the one, and only spun up on demand).
+
+<pre class="language-text rho-local-help"><code class="language-text"><span class="ansi-bold">rho.local</span>
+<span class="ansi-blue">━━━━━</span><span class="ansi-pink">━━━━━</span><span class="ansi-white">━━━━━</span><span class="ansi-pink">━━━━━</span><span class="ansi-blue">━━━━━</span>
+
+Locally hosted websites, accessible from any device on your network.
+Reach them through <span class="ansi-cyan">http://rho.local/</span>
+
+<span class="ansi-bold">Linked sites:</span>
+  <span class="ansi-pink">•</span> curlew  <span class="ansi-cyan">http://rho.local/curlew/</span>
+
+<span class="ansi-bold">Commands:</span>
+  <span class="ansi-green">start   </span>  build and start the stack
+  <span class="ansi-green">stop    </span>  stop the stack
+  <span class="ansi-green">restart </span>  rebuild and restart the stack
+  <span class="ansi-green">status  </span>  show container status
+  <span class="ansi-green">ls      </span>  list linked sites and readiness
+  <span class="ansi-green">validate</span>  vet sites.toml
+  <span class="ansi-green">gen     </span>  regenerate Caddyfile and docker-compose.yml
+  <span class="ansi-green">install </span>  install the global command and mDNS unit
+</code></pre>
+
+I rendered the videos in a website I dub `curlew.local` (an inaccurate domain, since I don't think I can easily bind multiple domains to my laptop directly without more networking than I'd like). It was named after a poem I'm fond of:
+
+> “What an unearthly aria that call was.  
+> Sometimes I would think, it isn’t a call at all.  
+> But if it isn’t, what is it?  
+> Is it a spontaneity of eternity that has somehow come through into time?  
+> Hearing his voice, a god who had made the curlew would almost instantly want to remake himself as the thing he had made.
+>
+> - John Moriarty
+
+Or, [a second poem I am fond of](https://www.poetryverse.com/william-butler-yeats-poems/reproves-the-curlew). Or ultimately, a [bird I am fond of](https://photos.rho.ie/#!/thing/bird:numenius-arquata).
+
+The website is fairly basic; it lists Bach pieces, grouped by [BWV](https://en.wikipedia.org/wiki/Bach-Werke-Verzeichnis) sections into groups like "The Art of the Fugue", "Well-Tempered Clavier", and allows me to play pieces at my preferred tempo, loop parts, and favourite the ones I like. It's a PWA, so I installed it on my home screen and can navigate to it a bit more quickly. The website works nicely enough, I have no objections (or, I did, then fixed them until I had none left).
+
+{% image "images/curlew.png", "curlew.local" %}
+
+And the actual results? This process was a few, minor, slight, incidental diversions away from sitting down and actually playing something on piano. The result is ... I need practice, and I should not record audio on a potato.
+
+<audio controls preload="metadata">
+  <source src="/audio/cello-sonata.m4a" type="audio/mp4">
+</audio>
+
+Despite that, I'm happy with the website. The video quality is good and easy to follow along to, and it's lovely having so much great music to choose from. Now for the hard part - playing it!
+
+## Takeaway Points
+
+- Progress bars remain the most interminably difficult part of workflow engine development.
+- It is known that setting up a cluster-computer render farm is a prerequisite to playing piano.
+- Playing piano is still difficult.

@@ -94,6 +94,30 @@ h2 {
   margin-top: 1.35rem;
 }
 
+.rho-local-help .ansi-bold {
+  font-weight: 700;
+}
+
+.rho-local-help .ansi-blue {
+  color: #87d7ff;
+}
+
+.rho-local-help .ansi-pink {
+  color: #ffafd7;
+}
+
+.rho-local-help .ansi-white {
+  color: #ffffff;
+}
+
+.rho-local-help .ansi-cyan {
+  color: #00cdcd;
+}
+
+.rho-local-help .ansi-green {
+  color: #00cd00;
+}
+
 section {
   margin-left: 1.35rem;
 }

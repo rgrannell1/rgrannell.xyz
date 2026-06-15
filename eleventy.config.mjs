@@ -77,6 +77,7 @@ export default function (cfg) {
     "icons",
     "img",
     "videos",
+    "audio",
     "specs",
     "me.jpg",
   ];
