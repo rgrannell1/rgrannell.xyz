@@ -98,12 +98,17 @@
   </noscript>
 
   <script>
-    // -- register a service-worker
-    if('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-      console.log('loaded /sw.js')
-    } else {
-      console.error('failed to load /sw.js')
+    // Remove the retired service worker and its old caches for returning visitors.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistration().then(function (registration) {
+        if (registration) registration.unregister();
+      });
+    }
+
+    if ("caches" in window) {
+      ["sw-cache", "v1"].forEach(function (name) {
+        caches.delete(name);
+      });
     }
   </script>
 </html>

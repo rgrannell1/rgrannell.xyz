@@ -126,10 +126,28 @@ html {
   min-height: 100vh;
 }
 
+/* Keep wide display equations inside the page on narrow screens. */
+.katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (max-width: 640px) {
   body {
     margin-left: 1rem;
     margin-right: 1rem;
+  }
+
+  .katex-display {
+    font-size: 0.85em;
+    text-align: left;
+  }
+
+  .katex-display > .katex {
+    text-align: left;
   }
 
   section {
