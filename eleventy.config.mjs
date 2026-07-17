@@ -1,6 +1,6 @@
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import pluginRss from "@11ty/eleventy-plugin-rss";
-import markdownItKaTeX from "markdown-it-katex";
+import { katex } from "@mdit/plugin-katex";
 import markdownIt from "markdown-it";
 import Image from "@11ty/eleventy-img";
 import crypto from "crypto";
@@ -41,6 +41,12 @@ function imageShortcode(src, alt, sizes = "100vw") {
 
 export default function (cfg) {
   cfg.addGlobalData("siteUrl", "https://rho.ie");
+  cfg.setServerOptions({
+    messageOnStart: ({ localhostUrl }) => {
+      const { port } = new URL(localhostUrl);
+      return `Listening on port ${port}`;
+    },
+  });
   cfg.addGlobalData("cssHash", () => {
     const cssDir = "./css";
     const files = fs.readdirSync(cssDir).filter(f => f.endsWith(".css"));
@@ -61,7 +67,7 @@ export default function (cfg) {
   cfg.addPlugin(pluginRss);
   cfg.setLibrary(
     "md",
-    markdownIt({ html: true, linkify: true, typographer: true }).use(markdownItKaTeX),
+    markdownIt({ html: true, linkify: true, typographer: true }).use(katex),
   );
 
   cfg.addNunjucksShortcode("image", imageShortcode);
