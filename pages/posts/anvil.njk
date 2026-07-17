@@ -1,0 +1,100 @@
+---
+tags: posts
+title: Steganographic Communication with Anvils
+date: 2026-07-17
+layout: "base.njk"
+templateEngineOverride: md, njk
+permalink: "anvil.html"
+subheading: ""
+---
+
+# Steganographic Communication with Anvils
+
+Imagine two parties needed to exchange information covertly. One obvious option is to build a messaging system backed by Amazon anvil orders. The transport protocol is simple (for them; less so for Amazon):
+
+- They order various amounts and selections of anvils from each Amazon marketplace.
+- The receiver notes which anvils arrived, from which marketplaces.
+- They process that information; roles switch, and we await a message from the receiver-turnt-sender.
+
+They, of course, refuse to accept delivery of any anvils whatsoever, though they carefully note which anvils they refused from the delivery driver(s).
+
+A quick survey of Amazon shows the following types of anvil for sale (anvil / not-anvil being gauged by ACME standards, naturally).
+
+{% image "images/anvil.png", "anvils on amazon" %}
+
+| Marketplace | Anvil types |
+|---|---|
+| `amazon.com` | 23 |
+| `amazon.ca` | 27 |
+| `amazon.com.mx` | 9 |
+| `amazon.com.br` | 4 |
+| `amazon.co.uk` | 8 |
+| `amazon.de` | 10 |
+| `amazon.fr` | 15 |
+| `amazon.it` | 2 |
+| `amazon.es` | 20 |
+| `amazon.nl` | 6 |
+| `amazon.se` | 26 |
+| `amazon.pl` | 4 |
+| `amazon.com.be` | 30 |
+| `amazon.ie` | 24 |
+| `amazon.com.tr` | 0 |
+| `amazon.ae` | 23 |
+| `amazon.sa` | 31 |
+| `amazon.eg` | 0 |
+| `amazon.co.za` | 5 |
+| `amazon.co.jp` | 6 |
+| `amazon.in` | 21 |
+| `amazon.com.au` | 10 |
+| `amazon.sg` | 11 |
+
+In total, we have $315$ options to choose from.
+
+## Encoding Messages
+
+We need a way of mapping mountains of anvils arriving at our doorstep to an actual messaging system. This will involve some maths.
+
+Let's consider marketplace-anvil brand combinations as a single combined symbol (we'll just shorthand this pair as "an anvil" for brevity). $A$ is the ordered set of anvils available. Assume we can purchase each of the anvils up to nine times. We'll denote the message as a 315-element vector $(a_0, a_1, ..., a_{314})$; each element showing how many of anvil $a_i$ we included in an order.
+
+We can construct a one-to-one mapping (a bijection) between a space of binary numbers and our message $\mathbb{\{0,...,9\}}^{315}$; given either a message or a number, we can find the other uniquely. We have ten options at each position so the purchase can be read fairly directly as a 315-digit base-ten number. To assemble that number from its digits in the message vector we just sum up the terms multiplied by the correct power of ten. Here we use [little endian](https://www.freecodecamp.org/news/what-is-endianness-big-endian-vs-little-endian/) to simplify the summation; so the leftmost digit is _least_ significant and we read numbers right-to-left.
+
+$$N = \sum_{i=0}^{314} a_i10^{i}$$
+
+For example, this purchase of eleven anvils from four options $({a_0, ..., a_3})$
+
+$$(3,7,0,1) = 3 \times 1 + 7 \times 10 + 0 \times 100 + 1 \times 1000 = 1073$$
+
+Base-10 to base-2 conversion can then be done readily, giving us a binary message. Each anvil slot has ten possible choices. Since the choice for each slot is independent the product of the per-slot choices available gives the total number of distinct messages; $10^{315}$. This gives us $\log_2(10^{315}) \approx 1046$ bits of information; $130$ ascii characters, just short of a pre-Musk tweet.
+
+To decode the message, consume it one byte at a time and look up the corresponding ascii character. To encode one, we'd convert a short message to ascii and order the following amount of each anvil. [1] 
+
+$$a_i = \left\lfloor \frac{N}{10^{i}} \right\rfloor \bmod 10$$
+
+We now have our covert transport protocol. An example message
+
+> what news from moscow?
+
+would be encoded as
+
+$$
+\begin{aligned}
+(a_0,\dots,a_{314}) = (\ &5,5,8,7,5,2,0,2,5,9,3,6,6,7,8,8,2,9,1,3,5,\\
+&6,2,8,6,7,6,8,4,9,9,5,0,8,2,4,2,1,4,7,4,7,\\
+&1,1,4,8,3,7,5,7,6,4,4,0,...,0\ )
+\end{aligned}
+$$
+
+we would order 265 anvils (51 distinct), or about twelve per character in our message. Taking the first anvil I spotted on Amazon as representative, that'd amount to $€11,572.02$ and two and a half-tonnes of weight.
+
+{% image "images/anvil-cart.png", "anvil order on amazon" %}
+
+Of course, you are not carrying the anvils. And you are not accepting them, so you'd soon be refunded. This makes anvil-based steganography a cost-effective and practical communication protocol.
+
+## Takeaway Points
+
+- Rudimentary mathematics is useful in spycraft
+- Further work is needed to run Doom on Amazon's logistic network
+
+## Footnotes
+
+[1] https://www.math.mcgill.ca/gantumur/math387w18/float.pdf
