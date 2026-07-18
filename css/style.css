@@ -7,6 +7,24 @@
 
   --marker-color: hsl(0, 0%, 72%);
   --nav-border-color: hsl(0, 0%, 0%);
+
+  /* Pastel colours for the site frame. */
+  --frame-blue: hsl(197, 70%, 82%);
+  --frame-pink: hsl(348, 75%, 88%);
+  --frame-white: hsl(0, 0%, 99%);
+}
+
+/* Pastel gradient site frame. */
+html {
+  border: 12px solid transparent;
+  border-image: linear-gradient(
+    to bottom,
+    var(--frame-blue),
+    var(--frame-pink),
+    var(--frame-white),
+    var(--frame-pink),
+    var(--frame-blue)
+  ) 1;
 }
 
 body {
