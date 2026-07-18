@@ -3,6 +3,13 @@ const CURVE_WAIT = 50;
 const STEP_SIZE = 0.1;
 const TIME_RANGE = 365 * Math.PI;
 
+// segments per full swing of the stroke hue
+const HUE_CYCLE_SEGMENTS = 2000;
+// centre hue matches the original gold stroke
+const HUE_CENTRE = 53;
+// how far the hue swings either side of centre, in degrees
+const HUE_SWING = 35;
+
 function scale(factor, curve) {
   return function(time) {
     const point = curve(time);
@@ -63,11 +70,13 @@ async function animate(ctx, curve, signal) {
   const points = trace(curve);
   if (points.length < 2) return;
 
-  for (let i = 1; i < points.length; i++) {
+  for (let idx = 1; idx < points.length; idx++) {
     if (signal.aborted) return;
+    const hue = HUE_CENTRE + HUE_SWING * Math.sin((2 * Math.PI * idx) / HUE_CYCLE_SEGMENTS);
+    ctx.strokeStyle = `hsl(${hue}, 100%, 35%)`;
     ctx.beginPath();
-    ctx.moveTo(points[i - 1].x, points[i - 1].y);
-    ctx.lineTo(points[i].x, points[i].y);
+    ctx.moveTo(points[idx - 1].x, points[idx - 1].y);
+    ctx.lineTo(points[idx].x, points[idx].y);
     ctx.stroke();
     await sleep(CURVE_WAIT, signal);
   }
@@ -97,7 +106,6 @@ async function draw(ratio, ctx, signal) {
     scale(400, rose(ratio)));
 
   ctx.globalAlpha = 1/18;
-  ctx.strokeStyle = '#b29c00';
   ctx.lineWidth = 3;
 
   await animate(ctx, curve, signal);
