@@ -1,21 +1,37 @@
+/* Site-wide styles for rho.ie: colour palette, frame, nav, and post layout. */
+
 :root {
+  /* Text. */
   --font-colour: hsla(0, 0%, 0%, 0.8);
   --navbar-font-colour: hsl(0, 0%, 0%);
-  --background-color: hsl(0, 0%, 96%);
-  --link-color: hsl(211, 100%, 35%);
-  --link-background-color: hsl(211, 100%, 95%);
+  --header-tick-colour: lightgrey;
+  --post-meta-colour: hsl(0, 0%, 50%);
 
-  --marker-color: hsl(0, 0%, 72%);
-  --nav-border-color: hsl(0, 0%, 0%);
+  /* Page. */
+  --background-colour: hsl(0, 0%, 96%);
+  --marker-colour: hsl(0, 0%, 72%);
+  --nav-border-colour: hsl(0, 0%, 0%);
+
+  /* Links. */
+  --link-colour: hsl(211, 100%, 35%);
+  --link-background-colour: hsl(211, 100%, 95%);
 
   /* Pastel colours for the site frame. */
   --frame-blue: hsl(197, 70%, 82%);
   --frame-pink: hsl(348, 75%, 88%);
   --frame-white: hsl(0, 0%, 99%);
+
+  /* ANSI palette for embedded terminal output. */
+  --ansi-blue: #87d7ff;
+  --ansi-pink: #ffafd7;
+  --ansi-white: #ffffff;
+  --ansi-cyan: #00cdcd;
+  --ansi-green: #00cd00;
 }
 
 /* Pastel gradient site frame. */
 html {
+  min-height: 100vh;
   border: 12px solid transparent;
   border-image: linear-gradient(
     to bottom,
@@ -30,21 +46,9 @@ html {
 body {
   margin-right: 50px;
   margin-left: 50px;
-}
-
-li {
-  list-style: square;
-}
-
-li::marker {
-  font-size: 0.75rem;
-  color: var(--marker-color);
-}
-
-body {
   font-size: 1.2rem;
   color: var(--font-colour);
-  background-color: var(--background-color);
+  background-color: var(--background-colour);
 }
 
 main {
@@ -55,12 +59,28 @@ h1, h2 {
   font-size: 2rem;
 }
 
+h2 {
+  margin-top: 1.35rem;
+}
+
 h3, h4, h5, h6 {
   font-size: 1.5rem;
 }
 
-nav li {
-  list-style-type: none;
+li {
+  list-style: square;
+}
+
+li::marker {
+  font-size: 0.75rem;
+  color: var(--marker-colour);
+}
+
+nav {
+  margin-bottom: 2.2rem;
+  padding: 15px 0px;
+  font-size: 1.5rem;
+  border-bottom: 4px solid var(--nav-border-colour);
 }
 
 nav ul {
@@ -69,23 +89,9 @@ nav ul {
   overflow: hidden;
 }
 
-nav {
-  margin-bottom: 2.2rem;
-  padding: 15px 0px;
-  font-size: 1.5rem;
-  border-bottom: 4px solid var(--nav-border-color);
-}
-
 nav li {
   float: left;
-}
-
-a {
-  color: var(--link-color);
-}
-
-main a {
-  background-color: var(--link-background-color);
+  list-style-type: none;
 }
 
 nav li a {
@@ -96,8 +102,16 @@ nav li a {
   text-decoration: none;
 }
 
+a {
+  color: var(--link-colour);
+}
+
+main a {
+  background-color: var(--link-background-colour);
+}
+
 .header-tick {
-  color: lightgrey;
+  color: var(--header-tick-colour);
 }
 
 .h-card dl {
@@ -108,40 +122,32 @@ nav li a {
   font-weight: bold;
 }
 
-h2 {
-  margin-top: 1.35rem;
-}
-
 .rho-local-help .ansi-bold {
   font-weight: 700;
 }
 
 .rho-local-help .ansi-blue {
-  color: #87d7ff;
+  color: var(--ansi-blue);
 }
 
 .rho-local-help .ansi-pink {
-  color: #ffafd7;
+  color: var(--ansi-pink);
 }
 
 .rho-local-help .ansi-white {
-  color: #ffffff;
+  color: var(--ansi-white);
 }
 
 .rho-local-help .ansi-cyan {
-  color: #00cdcd;
+  color: var(--ansi-cyan);
 }
 
 .rho-local-help .ansi-green {
-  color: #00cd00;
+  color: var(--ansi-green);
 }
 
 section {
   margin-left: 1.35rem;
-}
-
-html {
-  min-height: 100vh;
 }
 
 /* Keep wide display equations inside the page on narrow screens. */
@@ -182,7 +188,7 @@ html {
 
 .post-meta {
   font-size: 0.8em;
-  color: hsl(0, 0%, 50%);
+  color: var(--post-meta-colour);
   margin-top: 0.1em;
 }
 
