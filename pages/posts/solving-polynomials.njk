@@ -10,22 +10,22 @@ subheading: Finished.
 
 # Solving A Trillion Polynomials
 
-This is a long story; as in, it spans much of my life. This year, I solved a problem I've worked on since 2010.
+This is a long story: as in, it spans much of my life. This year, I solved a problem I've worked on since 2010.
 
 ## University
 
 It starts with my first year in university. I'd read Saladin's "Anatomy & Physiology" until it was worn out, read through a medical dictionary cover to cover (predictable ending), and binged OpenCourseware series and lecturers on YouTube. But, I was intellectually green; heavy on facts and light on skill or understanding. I took my first mathematics classes, struggled, but loved them. 
 
-I started programming in R to save time. I hated hand-computing determinants and inverses of enormous matrices and had a suspicion programming would in some way be useful to me. I had fun. I scraped geospatial information from Twitter and plotted world maps, made dubious scientific charts, and learnt. I blundered into unsolved problems like constructing [Thomson spheres](https://en.wikipedia.org/wiki/Thomson_problem). I was learning, and had so much to learn.
+I started programming in R to save time. I hated hand-computing determinants and inverses of enormous matrices and had a suspicion programming would in some way be useful to me. I had fun. I scraped geospatial information from Twitter and plotted world maps, made dubious scientific charts, and played around. I blundered into unsolved problems like constructing [Thomson spheres](https://en.wikipedia.org/wiki/Thomson_problem). I was learning, and had so much to learn.
 
 ---
 
 I started solving polynomials. The setup was simple; I had a feeling that polynomial solutions would have an interesting pattern. I ended up with the algorithm:
 
 - Use tuples drawn from a finite box of $\mathbb{Z}^n$ as polynomial coefficients
-- Examine only monic polynomials (their largest order term has a coefficient on one)
+- Examine only monic polynomials (their largest order term has a coefficient of one)
 - Construct a characteristic polynomial matrix
-- Compute its complex eigenvalue solutions. I'd remembered the [fundamental theorem of algebra](https://en.wikipedia.org/wiki/Fundamental_theorem_of_algebra) from class; real solutions may not exist but complex ones would
+- Compute its complex eigenvalue solutions. I'd remembered the [fundamental theorem of algebra](https://en.wikipedia.org/wiki/Fundamental_theorem_of_algebra) from class; real solutions might not exist but complex ones would
 
 I had a shallow notion of what any of this mathematics meant or how to compute these solutions. Despite this, I ran slow code on underpowered hardware [computing a few polynomial solutions](https://gist.github.com/rgrannell1/5196555) and got my graph. 
 
@@ -35,9 +35,9 @@ It is, sadly, missing. I can find disturbing graphs of pre-melatonin sleep cycle
 
 I knew I could eventually make a nicer graph. I decided to keep learning how to program and to revisit the problem when I was more skilled.
 
-## Attempt 1: 2016 - 2020
+## Attempt 1: 2016 - 2017
 
-I kept studying biochemistry, but I found I had more aptitude for programming than lab-work. In 2014 I built a functional-programming library and started to understand abstraction, clean code, UX, performance, and how to program quickly and voluminously. I eventually noticed I was good and acquired a degree in software development to join the tech work force. I could earn a living typing code (which I was doing in my free time anyway) and practice my craft. I was increasingly competent.
+I kept studying biochemistry, but I found I had more aptitude for programming than lab-work. In 2014 I built a functional-programming library and started to understand abstraction, clean code, UX, performance, and how to program quickly and voluminously. I eventually noticed I was good and acquired a degree in software development to join the tech workforce. I could earn a living typing code (which I was doing in my free time anyway) and practise my craft. I was increasingly competent.
 
 {% image "images/nolife.png", "3.17k commits in a year." %}
 
@@ -45,21 +45,21 @@ In 2016 [I reapproached the polynomial problem](https://github.com/rgrannell1/po
 
 {% image "images/poly-2016.png", "Central features of a monic polynomial solution space" %}
 
-The code is clean and legible, as good as anything I've ever written, though seemingly took a few hundred commits to reach that state. It wasn't terribly fast, though I had to be inventive to plot more solutions. For example, I pieced together the enormous final image from subtiles with ImageMagick; if I rendered in one pass, I'd reliably crash my laptop. This took time to discover (read: many crashes and eventual glee on designing this hacky workaround)
+The code is clean and legible, as good as anything I've ever written. It did take a few hundred commits to reach that state, and it wasn't terribly fast. I had to be inventive to plot more solutions. For example, I pieced together the enormous final image from subtiles with ImageMagick; if I rendered in one pass, I'd reliably crash my laptop. This took time to discover (read: many crashes and eventual glee at discovering this hacky workaround).
 
 The benchmarks left `one trillion` solutions flagged as `new laptop 🙁`
 
-I made a few minor attempts following this one: in 2017, a larger [Go]( https://github.com/rgrannell1/pretty-poly/blob/master/README.md) version and a fairly quickly abandoned [Rust version](https://github.com/rgrannell1/poly/blob/master/src/main.rs). They must not have worked well, as I can't find renders I kept. Though, more inventiveness:
+I made a few minor attempts following this one: in 2017, a larger [Go](https://github.com/rgrannell1/pretty-poly/blob/master/README.md) version and a fairly quickly abandoned [Rust version](https://github.com/rgrannell1/poly/blob/master/src/main.rs). They must not have worked well, as I can't find renders I kept. Though, more inventiveness:
 
 - Partitioning the coefficient space evenly across parallel workers
 - Quantising solutions to a 64-bit number to save on storage (I calculated I'd need a terabyte of storage for the trillion-parameter run)
 
 ## Attempt 2: 2020
 
-By 2020, I'd written dozens more personal projects, and a lot of code professionally (though distressing amounts of PowerShell). I'd reached the peak of my ability to program. [My 2020 attempt](https://github.com/rgrannell1/poly2020) was faster, it stored solutions more efficiently:
+By 2020, I'd written dozens more personal projects, and a lot of code professionally (though distressing amounts of PowerShell). I'd reached the peak of my ability to program. [My 2020 attempt](https://github.com/rgrannell1/poly2020) was faster; it stored solutions more efficiently:
 
 - Discarded solutions quantised to the same spot on the Argand diagram
-- Roots were quantised to 16 bit numbers
+- Roots were quantised to 16-bit numbers
 - Solution files were compressed
 - It enumerated shells of coefficients to make resumption repeat less work.
 
@@ -83,11 +83,11 @@ into Claude. _I_[1] wrote it in JavaScript, but its unpleasant parallelism deter
 
 > "Compute quartic roots directly"
 
-knowing that fourth-order polynomials have closed-form solutions. It did, using Ferrari's Method; a formula I do not understand from a mathematician I have not heard of. It involves a homomorphism from the symmetric group $S_4$ to $S_3$, with its kernel being its Klein four-group. I know a little about homomorphism and kernels and groups but not how it relates to polynomials. It might involve Galois Theory, but I haven't made it past integers in Pinter's ["A Book of Abstract Algebra"](https://math.umd.edu/~jcohen/402/Pinter%20Algebra.pdf).
+knowing that fourth-order polynomials have closed-form solutions. It did, using Ferrari's Method: a formula I do not understand from a mathematician I have not heard of. It involves a homomorphism from the symmetric group $S_4$ to $S_3$, with its kernel being its Klein four-group. I know a little about homomorphism and kernels and groups but not how it relates to polynomials. It might involve Galois Theory, but I haven't made it past integers in Pinter's ["A Book of Abstract Algebra"](https://math.umd.edu/~jcohen/402/Pinter%20Algebra.pdf).
 
 I surely typed variations of "Be Faster" and "Be Better" several times; more experienced developers know that programs need to be made faster and made better several times. Less experienced developers forget this step. Many simply don't care.
 
-I ran my faster better program. It rendered images in exciting new palettes like "viridis" and "ice" and "inferno". I hadn't even heard the term "viridis" before (it pertains to greenness)!  Of course, with a trillion solutions, all fine structure is washed out and hidden. A smooth, glossy, featureless image.
+I ran my faster better program. It rendered images in exciting new palettes like "viridis" and "ice" and "inferno". I hadn't even heard the term "viridis" before (it pertains to greenness)! Of course, with a trillion solutions, all fine structure is washed out and hidden. A smooth, glossy, featureless image.
 
 {% image "images/poly-2026.png", "Central features of a monic polynomial solution space" %}
 
